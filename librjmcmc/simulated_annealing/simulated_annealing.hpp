@@ -50,7 +50,7 @@ namespace simulated_annealing
             void optimize(
                     Configuration& config, Sampler& sampler,
                     Schedule& schedule, EndTest& end_test,
-                    Visitor& visitor )
+                    Visitor& visitor, std::vector<double>& energy )
             //]
     {
 
@@ -59,12 +59,13 @@ namespace simulated_annealing
         //]
 
         //[simulated_annealing_loop
-        double t = *schedule;
+        double t = *schedule;//get temperature
         visitor.begin(config,sampler,t);
         for(; !end_test(config,sampler,t); t = *(++schedule))
         {
             sampler(config,t);
             visitor.visit(config,sampler,t);
+            energy.push_back(config.audit_unary_energy()+config.audit_binary_energy());
         }
         visitor.end(config,sampler,t);
         //]

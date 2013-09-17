@@ -78,6 +78,8 @@ namespace internal {
   public:
     Point_2(       ) { c_[0]= 0; c_[1]=0; }
     Point_2(T x,T y) { c_[0]= x; c_[1]=y; }
+    Point_2(const Point_2& o){c_[0]=o.x(); c_[1]=o.y();}
+    Point_2 & operator = (const Point_2& o){c_[0]=o.x(); c_[1]=o.y();return *this;}
     inline T x() const { return c_[0]; }
     inline T y() const { return c_[1]; }
     inline T operator[](unsigned int i) const { return c_[i]; }
@@ -91,6 +93,8 @@ namespace internal {
   public:
     Vector_2(       ) { c_[0]= 0; c_[1]=0; }
     Vector_2(T x,T y) { c_[0]= x; c_[1]=y; }
+    Vector_2(const Vector_2& o) {c_[0]=o.x();c_[1]=o.y();}
+    Vector_2 & operator = (const Vector_2& o){c_[0]=o.x(); c_[1]=o.y();return *this;}
     inline T x() const { return c_[0]; }
     inline T y() const { return c_[1]; }
     inline T operator[](unsigned int i) const { return c_[i]; }
@@ -112,7 +116,10 @@ namespace internal {
     Point_2<T> p_[2];
   public:
     typedef Simple_cartesian<T> R;
+    Segment_2(){}
     Segment_2(const Point_2<T>& p, const Point_2<T>& q) { p_[0]=p; p_[1]=q; }
+    Segment_2(const Segment_2& o) { p_[0]=o.source(); p_[1]=o.target();}
+    Segment_2& operator = (const Segment_2& o) {p_[0]=o.source(); p_[1]=o.target();return *this;}
     inline const Point_2<T>& source() const { return p_[0]; }
     inline const Point_2<T>& target() const { return p_[1]; }
   };
@@ -158,7 +165,7 @@ namespace internal {
 
 };
 
- 
+
   template < typename T >
   std::istream & operator>>(std::istream &is, internal::Point_2<T> &p)
   {

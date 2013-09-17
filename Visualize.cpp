@@ -24,7 +24,17 @@ void Visualize::display(std::vector<Bldg>& bldgs, Lot* lot, osg::Vec4 geomColor,
     {
         if(bldgs[i]._block.isEmpty())
             bldgs[i].extrude();
-        root->addChild(makeGeode(bldgs[i]._block,geomColor));
+        //root->addChild(makeGeode(bldgs[i]._block,geomColor));
+
+        osg::ref_ptr<osg::Group> wire = new osg::Group();
+        PolyhedralSurface shell = bldgs[i]._block.exteriorShell();
+        int n=shell.numPolygons();
+        for(int j=0;j<n;++j)
+        {
+            wire->addChild(makeGeode(shell.polygonN(j).exteriorRing(),BLACK));
+        }
+        root->addChild(wire);
+
     }
     viewNode(root,camColor);
 
@@ -65,7 +75,7 @@ void Visualize::viewNode(osg::ref_ptr<osg::Node> node, osg::Vec4 camColor)
 		lightModel->setAmbientIntensity(osg::Vec4(0.3,0.3,0.3,1));
 		globalState->setAttributeAndModes(lightModel,osg::StateAttribute::ON);
 	}
-
+    viewer.setUpViewInWindow(0,0,600,400);
     viewer.getCamera()->setClearColor(camColor);
 	viewer.setSceneData(node.get());
 	viewer.realize();

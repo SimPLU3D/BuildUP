@@ -22,28 +22,24 @@ typedef Cuboid_bldg object;
 /************  energies  ******************/
 #include "rjmcmc/energy/energy_operators.hpp"
 #include "mpp/energy/plu_unary_energy.hpp"
-#include "mpp/energy/plu_global_energy.hpp"
-#include "mpp/energy/intersection_area_binary_energy.hpp"
-typedef plu_unary_energy<> unary_energy;
-typedef intersection_area_binary_energy<> binary_energy;
-typedef plu_global_energy<> global_energy;
+#include "mpp/energy/plu_binary_energy.hpp"
+typedef plu_unary_ces<> unary_ces;
+typedef plu_unary_cos<> unary_cos;
+typedef plu_unary_border<> unary_border;
+typedef plu_binary_intersection<> binary_overlap;
+typedef plu_binary_distance<> binary_distance;
+
 
 /************ configuration ******************/
 #include "mpp/configuration/graph_configuration.hpp"
 typedef marked_point_process::graph_configuration<
         object
-        ,multiplies_energy<constant_energy<>,unary_energy>
-        ,multiplies_energy<constant_energy<>,binary_energy>
-        //,global_energy
+        ,multiplies_energy<constant_energy<>,unary_ces>
+        ,multiplies_energy<constant_energy<>,unary_cos>
+        ,multiplies_energy<constant_energy<>,unary_border>
+        ,multiplies_energy<constant_energy<>,binary_overlap>
+        ,multiplies_energy<constant_energy<>,binary_distance>
         > configuration;
-
-//#include "mpp/configuration/vector_configuration.hpp"
-//typedef marked_point_process::vector_configuration<
-//        object,
-//        multiplies_energy<constant_energy<>,unary_energy> ,
-//        multiplies_energy<constant_energy<>,binary_energy> ,
-//        global_energy
-//        > configuration;
 
 /***** kernels *****/
 #include "mpp/kernel/kernel.hpp"
@@ -81,7 +77,7 @@ typedef rjmcmc::metropolis_acceptance acceptance;
 typedef rjmcmc::sampler<d_sampler,acceptance
         ,birth_death_kernel
         ,edge_modification_kernel
-        ,corner_modification_kernel
+        //,corner_modification_kernel
         ,height_modification_kernel
         > sampler;
 
@@ -115,14 +111,15 @@ typedef simulated_annealing::max_iteration_end_test     end_test;
 #include <math.h>
 #include <boost/filesystem.hpp>
 #include "plu/Bldg.hpp"
+#include "plu/Road.hpp"
 
 OGRPolygon* loadFromShp(const char* shpIn);
 Lot* singleLotFromShp(const char* shpIn, const char* shpOut);
 
 int main(int argc,char** argv)
 {
-    const char * shpIn = "./data/lot1.shp";
-    const char * shpOut = "./data/lot1_trans.shp";
+    const char * shpIn = "./data/lot6.shp";
+    const char * shpOut = "./data/lot6_trans.shp";
     Lot* lot = singleLotFromShp(shpIn,shpOut);
     std::cout<<"lot area"<<lot->_area<<std::endl;
 //	std::cout<<lot->_polygon->IsEmpty()<<std::endl;
@@ -141,72 +138,61 @@ int main(int argc,char** argv)
     param *p = new param;
 
     p->caption("Building generation parameters");
-    p-> insert<double>("temp",'t',150,"Initial Temperature");
+    p-> insert<double>("temp",'t',1000,"Initial Temperature");
     p-> insert<double>("deccoef",'C',0.999999,"Decrease coefficient");
     p-> insert<int>("nbiter",'I',150000,"Number of iterations");
 //    p->template insert<double>("qtemp",'q',0.5,"Sampler (q) [0;1]");
-    p-> insert<int>("nbdump",'d',15000,"Number of iterations between each result display");
+    p-> insert<int>("nbdump",'d',150000,"Number of iterations between each result display");
 //    p->template insert<bool>("dosave",'b',false, "Save intermediate results");
     p-> insert<int>("nbsave",'S',150000,"Number of iterations between each save");
-    p-> insert<double>("poisson",'p',500, "Poisson processus parameter");
-    p-> insert<double>("maxsize",'m', lot->_box2d.area()*lot->_rule._cesMax, "Maximum rectangle size");
-    //p-> insert<double>("maxsize",'m', 60, "Maximum rectangle size");
-    p-> insert<double>("maxratio",'M',5, "Maximum rectangle aspect ratio");
-
+    p-> insert<double>("poisson",'p',200, "Poisson processus parameter");
+    p-> insert<double>("maxsize",'Ms', lot->_box2d.area()*lot->_rule._cesMax, "Maximum rectangle area");
+    p-> insert<double>("maxratio",'Mr',lot->_rule._ratioMax, "Maximum rectangle aspect ratio");
     p-> insert<double>("maxheight",'mh',lot->_rule._hMax, "Maximum height");
     p-> insert<double>("minheight",'Mh',lot->_rule._hMin, "Minimum height");
-    p-> insert<double>("pbirth",'B',0.5, "Birth probability");
+
+    p-> insert<double>("pbirth",'B',0.6, "Birth probability");
     p-> insert<double>("pdeath",'D',0.1, "Death probability");
-    p-> insert<double>("ponderation_unary",'su',1000, "ces");
-    p-> insert<double>("ponderation_binary",'sb',10, "Intersection area weight");
-    p-> insert<double>("energy",'e',250, "Cost of an object");
-    //p->template insert<double>("ponderation_grad",'\0',1, "Image gradient energy weight");
-    //p->template insert<double>("ponderation_mask",'\0',0, "Image mask energy weight");
-    //p->template insert<boost::filesystem::path>("dsm",'i',"./data/ZTerrain_c3.tif", "DSM image path");
-    //p->template insert<boost::filesystem::path>("mask",'\0',"", "mask image path");
-//    p->template insert<int>("xmin",'x',0., "Xmin");
-//    p->template insert<int>("ymin",'y',0, "Ymin");
-//    p->template insert<int>("xmax",'X',1000000, "Xmax");
-//    p->template insert<int>("ymax",'Y',1000000, "Ymax");
-//    p->template insert<int>("subsampling",'u',1, "Subsampling");
-//    p->template insert<double>("gaussian",'g',2, "Gaussian filter variance");
-    p-> insert<double>("sigmaD",'G',1, "Kernel size for gradients computation");
+
+    p-> insert<double>("pond_ces",'ces',300, "ces weight");
+    p-> insert<double>("pond_cos",'cos',500, "cos weight");
+    p-> insert<double>("pond_dist_ur",'distur',10,"unary distance weight");
+    p-> insert<double>("pond_overlap",'overlap',50, "overlap weight");
+    p-> insert<double>("pond_dist_bi",'distbi',10, "binary distance weight");
+
+    p-> insert<double>("rej_energy_ces",'rjces',200, "rejection energy of ces");
+    p-> insert<double>("rej_energy_cos",'rjcos',300, "rejection energy of cos");
+    p-> insert<double>("rej_energy_dist_bi",'rjdistbi',200, "rejection energy of binary distance ");
+    p-> insert<double>("rej_energy_dist_ur",'rjdistur',200, "rejection energy of unary distance ");
+
+
+
 
     /*** configuration ***/
-    configuration conf( p->get<double>("ponderation_unary")*unary_energy(lot)
-                        ,p->get<double>("ponderation_binary")*binary_energy()
+    configuration conf( p->get<double>("pond_ces")*unary_ces(lot)
+                        ,p->get<double>("pond_cos")*unary_cos(lot)
+                        ,p->get<double>("pond_dist_ur")*unary_border(lot,p->get<double>("rej_energy_dist_ur"))
+                        ,p->get<double>("pond_overlap")*binary_overlap()
+                        ,p->get<double>("pond_dist_bi")*binary_distance(lot->_rule._distMinBi,p->get<double>("rej_energy_dist_bi"))
                         //,global_energy(lot)
                         );
-   // conf.setMaxCES(lot->_rule._cesMax);
-   // conf.setMaxCOS(lot->_rule._cosMax);
+    conf.setMaxCES(p->get<double>("pond_ces")*lot->_rule._cesMax);
+    conf.setMaxCOS(p->get<double>("pond_cos")*lot->_rule._cosMax);
+    conf.set_rejectionEnergy_ces(p->get<double>("pond_ces")*p->get<double>("rej_energy_ces"));
+    conf.set_rejectionEnergy_cos(p->get<double>("pond_cos")*p->get<double>("rej_energy_cos"));
+    conf.set_coefficient_ces(p->get<double>("rej_energy_ces"));
+    conf.set_coefficient_cos(p->get<double>("rej_energy_ces")/lot->_rule._cosMax);//(p->get<double>("rej_energy_cos"));
 
      /*** sampler ***/
     double vLen = sqrt(p->get<double>("maxsize"))/2;
-    //double vLen = 50;
     K::Vector_2 v(vLen,vLen);
-    std::cout<<"semi major axis "<<vLen<<std::endl;
-    //K::Vector_2 v(p->get<double>("maxsize"),p->get<double>("maxsize"));
-    std::cout<<std::fixed<<lot->_box2d.min().x()<<" "<<lot->_box2d.min().y()<<std::endl;
-    std::cout<<std::fixed<<lot->_box2d.max().x()<<" "<<lot->_box2d.max().y()<<std::endl;
-
     uniform_birth birth(
-            //Rectangle_2(Point_2(300,200),-v,1/p->get<double>("maxratio"))
-            //,Rectangle_2(Point_2(500,400), v,  p->get<double>("maxratio"))
-            //Rectangle_2(lot->_box2d.min(),-v,1/p->get<double>("maxratio"))
-            //,Rectangle_2(lot->_box2d.max(), v,  p->get<double>("maxratio"))
-#include <fstream>
             Cuboid_bldg(lot->_box2d.min(),-v,1/p->get<double>("maxratio"),p->get<double>("minheight"))
-            ,Cuboid_bldg(lot->_box2d.max(), v,  p->get<double>("maxratio"),p->get<double>("maxheight"))
+            ,Cuboid_bldg(lot->_box2d.max(),v,  p->get<double>("maxratio"),p->get<double>("maxheight"))
             );
 
-    Filter filter(lot->_polygon);
+    Filter filter(lot);
     rejection_birth rejection(birth,filter);
-
-
-//object bldg;
-//double pdf = rejection(bldg);
-//std::cout << pdf << std::endl;
-//std::cout << "center="<<bldg.rect_2.center().x() << ","<<bldg.rect_2.center().y() << std::endl;
 
 
     distribution cs(p->get<double>("poisson"));
@@ -216,28 +202,38 @@ int main(int argc,char** argv)
     sampler samp( ds, acceptance()
                 , marked_point_process::make_uniform_birth_death_kernel(birth, p->get<double>("pbirth"), p->get<double>("pdeath") )
                 , marked_point_process::make_uniform_modification_kernel(cuboid_edge_translation_transform(),0.4)
-                , marked_point_process::make_uniform_modification_kernel(cuboid_corner_translation_transform(),0.4)
-                , marked_point_process::make_uniform_modification_kernel(cuboid_height_scaling_transform(),0.4)
+                //, marked_point_process::make_uniform_modification_kernel(cuboid_corner_translation_transform(),0.4)
+                , marked_point_process::make_uniform_modification_kernel(cuboid_height_scaling_transform(p->get<double>("minheight"),p->get<double>("maxheight")),0.8)
                 // , 0.5 * modif2
-
                 );
 
-  schedule sch(p->get<double>("temp"),p->get<double>("deccoef"));
+    schedule sch(p->get<double>("temp"),p->get<double>("deccoef"));
     end_test end(p->get<int>("nbiter"));
 
     typedef rjmcmc::any_sampler<configuration> any_sampler;
     any_sampler anySampler(samp);
 
     /*< Build and initialize simple visitor which prints some data on the standard output >*/
-    typedef simulated_annealing::any_composite_visitor<configuration,any_sampler> any_visitor;
-    any_visitor visitor;
-    visitor.push_back(simulated_annealing::ostream_visitor());
+    typedef simulated_annealing::any_composite_visitor<configuration,any_sampler> composite_visitor;
+    composite_visitor visitors;
+    visitors.push_back(simulated_annealing::ostream_visitor());
     //visitor.push_back(simulated_annealing::shp::shp_visitor(argv[0]));
-    visitor.push_back(simulated_annealing::tex_visitor("cuboid"));
-    visitor.init(p->get<int>("nbdump"),p->get<int>("nbsave"));
+    visitors.push_back(simulated_annealing::tex_visitor("cuboid",lot));
+    visitors.init(p->get<int>("nbdump"),p->get<int>("nbsave"));
 
     /*< This is the way to launch the optimization process. Here, the magic happen... >*/
-    simulated_annealing::optimize(conf,anySampler,sch,end,visitor);
+    std::vector<double> allEnergy;
+    simulated_annealing::optimize(conf,anySampler,sch,end,visitors,allEnergy);
+
+
+    std::ofstream outEnergy("energy.txt");
+    if(!outEnergy.is_open())
+        std::cout<<"errororor"<<std::endl;
+    else{
+        std::vector<double>::iterator it;
+        for(it=allEnergy.begin();it!=allEnergy.end();++it)
+            outEnergy<<*it<<"\n";
+    }
 
     //visualize BLDGS
     std::vector<Bldg> bldgs;
@@ -265,12 +261,13 @@ int main(int argc,char** argv)
     }
 
     Visualize vis;
-    vis.display(bldgs,lot,LIGHTGREEN,AZURE2);
+    vis.display(bldgs,lot,WHITE,AZURE2);
 
     delete lot;
     return 0;
 }
 
+//for test
 OGRPolygon* loadFromShp(const char* shpIn)
 {
     OGRRegisterAll();

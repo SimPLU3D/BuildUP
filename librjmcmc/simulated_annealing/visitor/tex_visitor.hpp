@@ -39,6 +39,7 @@ knowledge of the CeCILL license and that you accept its terms.
 
 #include <string>
 #include <fstream>
+#include "Lot.hpp"
 
 #ifdef  GEOMETRY_RECTANGLE_2_HPP
 template<typename K>
@@ -109,12 +110,14 @@ namespace simulated_annealing {
     class tex_visitor
     {
     public:
-        tex_visitor(const std::string& prefix) : m_iter(0), m_prefix(prefix) {}
+        tex_visitor(const std::string& prefix, Lot* lot)
+        : m_iter(0), m_prefix(prefix), m_lot(lot) {}
 
         void init(int, int s)
         {
             m_save = s;
             m_iter = 0;
+            //m_file_energy.open("energy.tex");
         }
 
         template<typename Configuration, typename Sampler>
@@ -138,6 +141,7 @@ namespace simulated_annealing {
     private:
         unsigned int m_save, m_iter;
         std::string m_prefix;
+        Lot* m_lot;
 
         template<typename Configuration>
         void save(const Configuration& config) const
@@ -150,16 +154,60 @@ namespace simulated_annealing {
                 std::cout << "\tUnable to create tex file " << oss.str() << std::endl;
                 return;
             }
+
+
             typename Configuration::const_iterator it = config.begin(), end = config.end();
             double total_area = 0;
+            double total_floor_area = 0;
+            double hMin = config[it].h, hMax = config[it].h;
+            double areaMin = config[it].area(), areaMax =areaMin;
+            double distUrMin = config[it].distance2line(m_lot->_mainEdge.source(),m_lot->_mainEdge.target()),distUrMax = distUrMin;
+            typename Configuration::const_iterator it2=it;
+            double sqDistBiMin = config[it].squared_distance_min(config[++it2]), sqDistBiMax = sqDistBiMin;
+
 
             for (; it != end; ++it)
             {
                 rjmcmc::apply_visitor(writer,config[it]);
+
                 total_area += config[it].area();
+                int nfloor = config[it].h/ m_lot->_rule._hMin;
+                total_floor_area += config[it].area()*nfloor;
+
+                double h=config[it].h;
+                hMin = h < hMin? h:hMin;
+                hMax = h > hMax? h:hMax;
+
+                double area=config[it].area();
+                areaMin = area<areaMin? area:areaMin;
+                areaMax = area>areaMax? area:areaMax;
+
+                double distUr=config[it].distance2line(m_lot->_mainEdge.source(),m_lot->_mainEdge.target());
+                distUrMin = distUr < distUrMin? distUr:distUrMin;
+                distUrMax = distUr > distUrMax? distUr:distUrMax;
+
+                it2 = it;
+                ++it2;
+
+                for(;it2 != end; ++it2)
+                {
+                    double sqDistBi = config[it].squared_distance_min(config[it2]);
+                    sqDistBiMin = sqDistBi < sqDistBiMin? sqDistBi:sqDistBiMin;
+                    sqDistBiMax = sqDistBi > sqDistBiMax? sqDistBi:sqDistBiMax;
+                }
+
 
             }
-            std::cout<<"total_area"<<total_area<<std::endl;
+            std::cout<<"ces "<<total_area/m_lot->_area<<std::endl;
+            std::cout<<"cos "<<total_floor_area/m_lot->_area<<std::endl;
+            std::cout<<"hMin "<<hMin<<std::endl;
+            std::cout<<"hMax "<<hMax<<std::endl;
+            std::cout<<"areaMin "<<areaMin<<std::endl;
+            std::cout<<"areaMax "<<areaMax<<std::endl;
+            std::cout<<"distUrMin "<<distUrMin<<std::endl;
+            std::cout<<"distUrMax "<<distUrMax<<std::endl;
+            std::cout<<"distBiMin "<<sqrt(sqDistBiMin)<<std::endl;
+            std::cout<<"distBiMax "<<sqrt(sqDistBiMax)<<std::endl;
         }
     };
 

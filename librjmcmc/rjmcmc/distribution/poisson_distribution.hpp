@@ -51,7 +51,7 @@ namespace rjmcmc {
         typedef int    int_type; //output type
         typedef boost::random::poisson_distribution<int_type,real_type> rand_distribution_type;
         typedef boost::math::poisson_distribution<real_type>    math_distribution_type;
-        typedef boost::variate_generator<rjmcmc::mt19937_generator&,rand_distribution_type> variate_generator_type;
+        typedef boost::random::variate_generator<rjmcmc::mt19937_generator&,rand_distribution_type> variate_generator_type;
 
         poisson_distribution(real_type mean)
             : m_variate(rjmcmc::random(),rand_distribution_type(mean))

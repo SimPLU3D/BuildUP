@@ -3,6 +3,7 @@
 
 #include "geometry/Rectangle_2.hpp"
 #include <math.h>
+
 namespace geometry {
 
 template<class T>
@@ -18,7 +19,6 @@ public:
     typedef typename T::Line_2                Line_2;
     typedef typename T::Segment_2             Segment_2;
     typedef typename T::Iso_rectangle_2       Iso_rectangle_2;
-
 
     Rectangle_2<T> rect_2;
     FT h;
@@ -36,17 +36,53 @@ public:
 
     Cuboid_bldg(const Rectangle_2<T> &rec, const FT & g): rect_2(rec),h(g) {}
 
-    inline bool operator==(const Cuboid_bldg &i) const {return (rect_2==i.rect_2) && (h==i.h);}
+    inline bool operator==(const Cuboid_bldg<T> &i) const {return (rect_2==i.rect_2) && (h==i.h);}
 
-    inline bool operator!=(const Cuboid_bldg &i) const {return ! (*this == i);}
+    inline bool operator!=(const Cuboid_bldg<T> &i) const {return ! (*this == i);}
 
+
+    FT squared_distance_min(const Cuboid_bldg<T> & o) const
+    {
+        FT dMin,d;
+        dMin = (rect_2.point(0)-o.rect_2.point(0)).squared_length();
+        for(int i=0;i<4;i++)
+        {
+            for(int j=0;j<4;j++)
+            {
+                d = (rect_2.point(i)-o.rect_2.point(j)).squared_length();
+                dMin = d<dMin?d:dMin;
+            }
+        }
+        return dMin;
+    }
+
+    FT distance2line(const Point_2& p1, const Point_2& p2) const
+    {
+        //(y-y1)/(y2-y1) = (x-x1)/(x2-x1)
+        //(y2-y1)x + (x1-x2)y -(x1-x2)y1-(y2-y1)x1 = 0
+        // a = y2-y1; b=x1-x2; c=-by1-ax1; ax+by+c=0
+        FT a,b,c;
+        a=p2.y()-p1.y();
+        b=p1.x()-p2.x();
+        c=-b*p1.y()-a*p1.x();
+
+        //distance of a point to line Ax+By+C=0 : |Ax0+By0+C|/|a||b|
+        Point_2 p0(rect_2.point(0));
+        FT dMin =  abs(a*p0.x()+b*p0.y()+c)/sqrt(a*a+b*b);
+        for(int i=1;i<4;i++)
+        {
+            Point_2 p(rect_2.point(i));
+            double d=abs(a*p.x()+b*p.y()+c)/sqrt(a*a+b*b);
+            dMin = d<dMin? d:dMin;
+        }
+        return dMin;
+    }
 
 /* Modifiers */
     inline void center(const Point_2& p ) { rect_2.c=p; }
     inline void normal(const Vector_2& v) { rect_2.n=v; }
     inline void ratio (FT f             ) { rect_2.r=f; }
     inline void height(FT g             ) { h=g;        }
-
 
 
 ///* Convenience Modifiers */
@@ -93,7 +129,7 @@ public:
     }
 
      Line_2 line(int i) const
-     {
+    {
         return rect_2.line(i);
      }
 

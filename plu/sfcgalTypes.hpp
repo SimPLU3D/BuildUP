@@ -8,5 +8,6 @@ typedef SFCGAL::LineString LineString;
 typedef SFCGAL::Polygon Polygon;
 typedef SFCGAL::MultiPolygon MultiPolygon;
 typedef SFCGAL::Solid Solid;
+typedef SFCGAL::PolyhedralSurface PolyhedralSurface;
 
 #endif

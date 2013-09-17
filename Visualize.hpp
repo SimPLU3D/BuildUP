@@ -12,6 +12,7 @@
 #include <osg/LightModel>
 
 #define WHITE osg::Vec4f(1.0f,1.0f,1.0f,0.2f)
+#define BLACK osg::Vec4f(0.0f,0.0f,0.0f,1.0f)
 
 #define YELLOW osg::Vec4f(1.0f,1.0f,0.0f,1.0f)
 #define YELLOWLIGHT osg::Vec4f(1.0f,0.92f,0.54f,1.0f)
