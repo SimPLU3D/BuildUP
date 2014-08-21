@@ -9,11 +9,11 @@
     void SFCGAL2OGR(Polygon& ply, OGRPolygon* ogrPly)
     {
 
-        for(int j=0;j<ply.numRings();++j)
+        for(size_t j=0;j<ply.numRings();++j)
         {
             OGRLinearRing ogrRing;
             LineString & ring = ply.ringN(j);
-            for(int i=0;i<ring.numPoints();++i)
+            for(size_t i=0;i<ring.numPoints();++i)
             {
                 double x = CGAL::to_double(ring.pointN(i).x());
                 double y = CGAL::to_double(ring.pointN(i).y());
