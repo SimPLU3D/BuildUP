@@ -2,7 +2,7 @@
 #define CONTROL_HPP
 
 #include "Lot.hpp"
-#include <rjmcmc/rjmcmc/random.hpp>
+#include <rjmcmc/util/random.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <cmath>
 #ifndef M_PI
