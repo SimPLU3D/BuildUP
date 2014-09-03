@@ -1,7 +1,7 @@
 #ifndef REJECTION_BIRTH_HPP_INCLUDED
 #define REJECTION_BIRTH_HPP_INCLUDED
 
-#include <rjmcmc/rjmcmc/random.hpp>
+#include <rjmcmc/util/random.hpp>
 
 namespace marked_point_process
 {

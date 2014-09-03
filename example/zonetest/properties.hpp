@@ -58,7 +58,7 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
                 fs<<"    --"<<"d"+itD->first<<" = "<<itD->second<<"\n";
             }
 
-            eFront = p.get<double>("wdborder")*p.get<double>("erej")*(lot->ruleEnergy(RuleType::DistFront))->energy(var_value,c[it].h());
+            eFront = p.template get<double>("wdborder")*p.template get<double>("erej")*(lot->ruleEnergy(RuleType::DistFront))->energy(var_value,c[it].h());
             std::cout<<"  eFront = "<<eFront<<"\n";
             fs<<"  eFront = "<<eFront<<"\n";
         }
@@ -78,7 +78,7 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
             }
 
 
-            eSide = p.get<double>("wdborder")*p.get<double>("erej")*(lot->ruleEnergy(RuleType::DistSide))->energy(var_value,c[it].h());
+            eSide = p.template get<double>("wdborder")*p.template get<double>("erej")*(lot->ruleEnergy(RuleType::DistSide))->energy(var_value,c[it].h());
             std::cout<<"  eSide = "<<eSide<<"\n";
             fs<<"  eSide = "<<eSide<<"\n";
 
@@ -98,7 +98,7 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
             }
 
 
-            eBack = p.get<double>("wdborder")*p.get<double>("erej")*(lot->ruleEnergy(RuleType::DistBack))->energy(var_value,c[it].h());
+            eBack = p.template get<double>("wdborder")*p.template get<double>("erej")*(lot->ruleEnergy(RuleType::DistBack))->energy(var_value,c[it].h());
             std::cout<<"  eBack = "<<eBack<<"\n";
             fs<<"  eBack = "<<eBack<<"\n";
 

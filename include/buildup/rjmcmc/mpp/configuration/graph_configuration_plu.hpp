@@ -3,7 +3,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 //#include <rjmcmc/mpp/configuration/configuration.hpp>
-#include <rjmcmc/rjmcmc/variant.hpp>
+#include <rjmcmc/util/variant.hpp>
 #include "configuration_plu.hpp"
 
 namespace marked_point_process

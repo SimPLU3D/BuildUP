@@ -5,7 +5,7 @@
 //#include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/random/variate_generator.hpp>
-#include <rjmcmc/rjmcmc/random.hpp>
+#include <rjmcmc/util/random.hpp>
 #include <cmath>
 #ifndef M_PI
 const double M_PI = 4.0 * atan(1.0);
