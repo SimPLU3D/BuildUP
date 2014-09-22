@@ -1,0 +1,8 @@
+Dependencies:
+boost
+librjmcmc (version 0.1)
+gdal
+openscenegraph
+
+Link libraries:
+-lboost_system -lboost_filesystem -lgdal -losg -losgGA -losgViewer -losgUtil -lOpenThreads
