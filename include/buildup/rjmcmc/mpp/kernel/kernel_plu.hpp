@@ -5,7 +5,6 @@
 #include "rjmcmc/kernel/kernel.hpp"
 #include "rjmcmc/kernel/transform.hpp"
 #include <boost/random/variate_generator.hpp>
-#include "buildup/plu/Control.hpp"
 #include "buildup/plu/Variate.hpp"
 
 namespace marked_point_process
