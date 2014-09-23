@@ -1,0 +1,97 @@
+[section:simulated_annealing Simulated Annealing]
+
+[section:simulated_annealing_introduction Introduction]
+Simulated annealing is a physical process inspired by annealing in metallurgy and is widely used in many communities where global optimization is of importance. At each step of the algorithm, the current solution is replaced by a new solution close from it. The new solution is chosen with a probability which depends firstly on the variation of the objective function and secondly on the current temperature which decreases a along the process evolution. It thus allows up moves which avoid being trapped in a local minima. Generally, depending on the speed of the decrease and its schedule, an solution close to the optimal one is found. [biblioref Salamon2002]
+
+Coupled with the rjmcmc framework, it enables the global optimization of an extremely large class of energy functions over complex search spaces of varying dimensions. The goal of the simulated annealing process is to drive the initial rjmcmc sampler from an initial probability distribution function given by an energy-agnostic probabilisation of the search space (denoted as the reference process) to a final probability distribution function which support is exactly the set of global minima of the energy.
+
+Thus the final pdf reduces to a simple Dirac at the global minimum if it is unique.
+To interpolate the pdf between the initial reference pdf and the final pdf a boltzmann distribution is usually used, parameterized by a temperature which decreases from +[infin] to zero.
+
+[import ../../lib/simulated_annealing/simulated_annealing.hpp]
+
+
+The main function of this simulated annealing `namespace` is `simulated_annealing::optimize`:
+[simulated_annealing_signature]
+
+The main loop of the simulated annealing is implemented as follows:
+[simulated_annealing_loop]
+
+The automatic validation of the concepts modeled by the argument templates is currently performed using the following macros:
+[simulated_annealing_concept_assertions]
+
+[endsect]
+
+[section:schedule Schedule concept]
+Models of the `Schedule` concept are responsible for providing the evolution of the temperature throughout
+the simulated annealing process.
+The `Schedule` concept is a refinement of the [@http://www.sgi.com/tech/stl/InputIterator.html InputIterator]
+concept of the [stl].
+
+The evaluation of a suitable initial temperature is not trivial. On the other hand, too high a temperature will unnecessarily
+prolong the initial phase of the simulated annealing where the sampling is unbiased by the energy.
+On the other hand, too low a temperature prevents the exploration of the whole configuration space and results in a
+convergence to a local minimum only. [biblioref Salamon2002] suggests considering an estimation of the variance of the energy
+of configurations sampled according to the reference process to estimate the initial temperature.
+
+Available models:
+
+* [classref simulated_annealing::geometric_schedule]
+* [classref simulated_annealing::logarithmic_schedule]
+* [classref simulated_annealing::inverse_linear_schedule]
+* [classref simulated_annealing::step_schedule]
+
+[endsect]
+
+[section:endtest EndTest concept]
+
+Models of the `EndTest` concept provide a simple predicate that informs the simulated annealing framework that the process has converged
+or whatever reason requiring to stop the simulated annealing iterations, such as a user-issued cancellation.
+
+The only requirements of this concept is to provide the following member function:
+
+        template<typename Configuration, typename Sampler>
+        bool operator()(const Configuration& configuration, const Sampler& sampler, double temperature);
+
+This function is guaranteed to be called only once per iteration and states whether the iterative
+process should continue.
+
+Available models:
+
+* [classref simulated_annealing::delta_energy_end_test]
+* [classref simulated_annealing::max_iteration_end_test]
+* [classref simulated_annealing::composite_end_test]
+
+[endsect]
+
+[section:visitor Visitor concept]
+
+Visitors are highly customizable objects passed to the simulated annealing process. They may be used to easily
+provide various vizualisations of the current state of the optimization.
+
+        void init(int dump, int save);
+
+        template<typename Configuration, typename Sampler>
+        void begin(const Configuration& configuration, const Sampler& sampler, double temperature);
+
+        template<typename Configuration, typename Sampler>
+        void visit(const Configuration& configuration, const Sampler& sampler, double temperature);
+
+        template<typename Configuration, typename Sampler>
+        void end(const Configuration& configuration, const Sampler& sampler, double temperature);
+
+
+Available models:
+
+* [classref simulated_annealing::ostream_visitor]
+* [classref simulated_annealing::composite_visitor]
+* Various [wx]-based GUI visitors (requiring the [gilviewer] library)
+  * [classref simulated_annealing::wx::log_visitor]
+  * [classref simulated_annealing::wx::parameters_visitor]
+  * [classref simulated_annealing::wx::chart_visitor]
+  * [classref simulated_annealing::wx::configuration_visitor]
+  * [classref simulated_annealing::wx::controler_visitor]
+
+[endsect]
+
+[endsect]

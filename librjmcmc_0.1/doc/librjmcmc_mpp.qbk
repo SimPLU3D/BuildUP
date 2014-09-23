@@ -1,0 +1,80 @@
+[section:mpp __MPP__]
+
+[section:mpp_introduction Introduction]
+
+A __MPP__ (MPP) [biblioref Lieshout2000] is a stochastic unordered set of geometric objects of one or many types
+(e.g. points, segments, circles, ellipses or rectangles in 2D, ellipsoids or spheres in 3D). The *marked point* denomination
+arises from the usual decomposition of the object parameterization into a *point* of its embedding space (usually its center)
+and a vector of values (the *marks*) that completes the geometric parameterization of the object (e.g. orientation, length or radius parameters), hence the name
+of __MPPs__.
+
+A __MPP__ is defined by a probabilized space.
+Elements of this space are unordered sets represented as instances of the [link librjmcmc.mpp.configuration Configuration] concept.
+A probabilization of this configuration space may be given by a discrete probability defined
+over the natural numbers *N* for each object type that samples the number of object of each type and an object sampler for each type.
+This allows a direct sampling of the __MPP__ by sampling both the object counts and then each object independently.
+
+Such a probabilization enables a direct sampling of the __MPP__. However if the probabilization involves
+interactions between objects, sampling the __MPP__ will require more advanced techniques such as
+the [link librjmcmc.rjmcmc __RJMCMC__] method.
+
+[endsect]
+
+
+[section:density Density concept]
+
+Marked Point Process Densities refine the __RJMCMC__ [link librjmcmc.rjmcmc.density Density] concept
+
+Available model:
+
+* [classref marked_point_process::direct_sampler]
+
+[endsect]
+
+
+[section:configuration Configurations and Energies]
+
+__MPPs__ are commonly used to drive a stochastic exploration in a optimization context where the objective function,
+hereafter called an `Energy` is composed as the sum of per-object unary terms and per-pair of objects binary terms.
+For efficiency reasons, `Configurations` are thus tightly coupled with energies in this library.
+A configuration is a wrapper around a container of objects. This wrapper abstraction may be used to cache intermediate
+values such as the binary energy terms between each object to prevent its recomputation.
+
+Multi-__MPPs__ are supported by supplying a [boost variant] over the types of objects as the `Object` template argument
+of the configuration.
+
+Available models:
+
+* [classref marked_point_process::vector_configuration]
+* [classref marked_point_process::graph_configuration]
+
+[endsect]
+
+[section:unary_energies Unary Energies]
+Available models:
+
+* [classref constant_unary_energy]
+* [classref image_gradient_unary_energy]
+
+[endsect]
+
+[section:binary_energies Binary Energies]
+Available models:
+
+* [classref intersection_area_binary_energy]
+
+[endsect]
+
+[section:accelerator Accelerator]
+
+When queried with a configuration `C` and an object `X`, an accelerator provides a subset of the set of objects in `C` that interact with `X` (i.e. that have a non-zero binary energy with it). If the binary energy becomes null or negligible when objects are further apart than a given threshold, an accelerator may only report objects that intersect a suitable ball centered on the query object `X`. Further releases of the library may then include more advanced accelerators based for instance on quad-trees, uniform grids or Kd-trees. However, the only model of this concept is currently the trivial accelerator that returns the whole range of objects of the query configuration.
+
+Available models:
+
+* [classref marked_point_process::trivial_accelerator]
+
+[endsect]
+
+
+
+[endsect]

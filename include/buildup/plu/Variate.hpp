@@ -95,6 +95,11 @@ public:
     Variate(VariateCenter& vc, VariateRho& vrho, VariateTheta& vt, VariateRatio& vr, VariateHeight& vh)
     :m_variate_center(vc),m_variate_rho(vrho),m_variate_theta(vt),m_variate_ratio(vr),m_variate_height(vh){}
 
+    template<typename Configuration, typename Modification, typename OutputIterator>
+    inline double operator()(Configuration& c, Modification& modif, OutputIterator it) const
+    { return (*this)(it);}
+
+
     template<typename OutputIterator>
     inline double operator()(OutputIterator it) const
     {
@@ -142,6 +147,9 @@ public:
     template<typename InputIterator>
     inline double pdf(InputIterator it) const { return this->pmf(it);}
 
+    template<typename Configuration, typename Modification, typename OutputIterator>
+    inline double inverse_pdf (Configuration& c, Modification& modif, OutputIterator it) const
+    { return this->pmf(it);}
 };
 
 

@@ -1,0 +1,87 @@
+[section:rjmcmc __RJMCMC__]
+
+[section:intro Introduction]
+
+A __MCMC__ (MCMC) sampler provides a series of configuration samples according
+to a given unnormalized probability distribution function. __RJMCMC__ (RJMCMC) [biblioref Hastings1970] [biblioref Green1995] is an extension
+of MCMC that allows the configurations space to be the union of spaces of varying dimensions.
+The algorithm consists in repeating the following steps until convergence has been detected:
+
+# Randomly choose a proposition kernel [$images/q_i.png [depth 12pt]]
+# Build a new configuration [$images/x_t.png [depth 12pt]] according to [$images/q_i.png [depth 12pt]]
+# Compute the acceptance ratio [$images/acceptance_ratio.png [depth 12pt]] and acceptance rate [$images/acceptance_rate.png [depth 12pt]]
+# With probability [$images/proba_configuration_choice.png [depth 24pt]]
+
+
+This algorithm is being implemented in the class [classref rjmcmc::sampler], which can be customized using the following template parameters :
+
+* The [link librjmcmc.rjmcmc.density Density] strategy, that encodes the reference process.
+* The [link librjmcmc.rjmcmc.acceptance Acceptance] strategy, responsible for computing the acceptance ratio `R`.
+* A list of [link librjmcmc.rjmcmc.kernel Kernels], that provides all the proposition kernels  [$images/q_i.png [depth 12pt]].
+
+[endsect]
+
+[section:density Density Concept]
+
+A density strategy is a functor that exposes a [^pdf_ratio(configuration,modification)] member function that outputs the ratio pdf(modified configuration)/pdf(initial configuration), where configuration is a model of the Configuration concept and modification is a object that encodes the changes that are being proposed to the current configuration.
+
+Available models:
+
+* See [link librjmcmc.mpp.density Marked Point Process Densities]
+
+[section:distribution Distribution Concept]
+
+`Distributions` are discrete probabilities over the set of non-negative integers, which are handy as basic blocks to build a [link librjmcmc.rjmcmc.density Density].
+
+Available models:
+
+* [classref rjmcmc::poisson_distribution]
+* [classref rjmcmc::uniform_distribution]
+
+[endsect]
+
+[endsect]
+
+[section:acceptance Acceptance Concept]
+
+The role of a __RJMCMC__ sampler is to generate a __MCMC__ series of configuration with a stationnary pdf based only on its evaluation up to a multiplicative factor. This allows to bias the sampling of a reference process with energy of the configuration (lower energy configuration getting comparatively more samples).
+
+[classref rjmcmc::metropolis_acceptance] being the most common choice, models of the `Acceptance` concept differ by their computation of the Green ratio impacted by differing formulations of the mixing of the reference density, the energy and the temperature value. The temperature will be introduced in the [link librjmcmc.simulated_annealing Simulated Annealing] section, to balance the relative influence of the energy values compared to the reference process.
+
+Available models:
+
+* [classref rjmcmc::metropolis_acceptance]
+* [classref rjmcmc::dueck_scheuer_acceptance]
+* [classref rjmcmc::franz_hoffmann_acceptance]
+* [classref rjmcmc::szu_hartley_acceptance]
+* [classref rjmcmc::tsallis_tsariolo_acceptance]
+
+[endsect]
+
+[section:kernel Kernel Concept]
+
+A kernel is used to propose atomic moves to explore the configuration space. Most common __MPP__ kernels are [classref rjmcmc::uniform_birth_kernel] and its reverse kernel [classref rjmcmc::uniform_death_kernel].
+
+
+Available models:
+
+* Application-specific
+
+[endsect]
+
+[section:transform Transform Concept]
+
+Transformations encode a bijective differentiable mapping between spaces of equal dimensions. They are thus used to describe the bijection applied during a kernel proposal. They compute automatically the Green ratio term relative to the proposed configuration modification, instead of a manual handling in the Kernel concept.
+
+Transformations have to provide =apply=, =inverse= and =abs_jacobian= functions.
+
+Available models:
+
+* [classref rjmcmc::linear_transform]
+* [classref rjmcmc::affine_transform]
+* [classref rjmcmc::diagonal_linear_transform]
+* [classref rjmcmc::diagonal_affine_transform]
+
+[endsect]
+
+[endsect]

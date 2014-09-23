@@ -38,12 +38,12 @@ typedef marked_point_process::graph_configuration_plu<
 /********** variates ***********/
 #include "buildup/plu/Variate.hpp"
 #include "buildup/plu/Functor.hpp"
-typedef Discrete_Variate<Center_Functor> VariateCenter;
-typedef Discrete_Variate<Rho_Functor> VariateRho;
-typedef Discrete_Variate<Theta_Functor> VariateTheta;
-typedef Discrete_Variate<Ratio_Functor> VariateRatio;
-typedef Discrete_Variate<Height_Functor> VariateHeight;
-typedef Variate<VariateCenter,VariateRho,VariateTheta,VariateRatio,VariateHeight> VariateAll;
+typedef Discrete_Variate<Center_Functor> Variate_Center;
+typedef Discrete_Variate<Rho_Functor> Variate_Rho;
+typedef Discrete_Variate<Theta_Functor> Variate_Theta;
+typedef Discrete_Variate<Ratio_Functor> Variate_Ratio;
+typedef Discrete_Variate<Height_Functor> Variate_Height;
+typedef Variate<Variate_Center,Variate_Rho,Variate_Theta,Variate_Ratio,Variate_Height> VariateAll;
 
 /***** mpp smapler *****/
 #include "buildup/rjmcmc/mpp/kernel/kernel_plu.hpp"
@@ -137,11 +137,11 @@ configuration* bldg_generator(parameters< parameter >& p, Lot* lot
     Ratio_Functor fRatio(1.,5.,sampRate);
     Height_Functor fHeight(lot);
 
-    VariateCenter vC(fCenter);
-    VariateRho vRo(fRho);
-    VariateTheta vT(fTheta);
-    VariateRatio vRa(fRatio);
-    VariateHeight vH(fHeight);
+    Variate_Center vC(fCenter);
+    Variate_Rho vRo(fRho);
+    Variate_Theta vT(fTheta);
+    Variate_Ratio vRa(fRatio);
+    Variate_Height vH(fHeight);
 
     VariateAll vAll(vC,vRo,vT,vRa,vH);
     uniform_birth birth(vAll);

@@ -1,0 +1,48 @@
+[library librjmcmc
+    [quickbook 1.5]
+    [version 0.1]
+    [authors [Brédif, Mathieu], [Tournaire, Olivier]]
+    [copyright 2010 Mathieu Brédif, Olivier Tournaire]
+    [purpose A generic library for rjmcmc and simulated annealing]
+    [license
+        Distributed under the CeCILL-B License, Version 1.0.
+        ([@http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html english] / [@http://www.cecill.info/licences/Licence_CeCILL-B_V1-fr.html french] copy.)
+        [/See french (frencLicence_CeCILL-B_V1-fr.txt) or english (Licence_CeCILL-B_V1-en.txt) accompanying file or ]
+    ]
+    [id rjmcmc]
+    [source-mode c++]
+]
+
+[include HTML4_symbols.qbk]
+[def __librjmcmc__ librjmcmc]
+[def __MPP__ Marked Point Process]
+[def __MPPs__ Marked Point Processes]
+[def __MCMC__ Markov Chain Monte Carlo]
+[def __RJMCMC__ Reversible-Jump __MCMC__]
+
+[template stl[] [@http://www.sgi.com/tech/stl STL]]
+[template wx[] [@http://www.wxwidgets.org/ wxWidgets]]
+[template gilviewer[] [@http://code.google.com/p/gilviewer/ GilViewer]]
+[/ extends [@http://www.boost.org/doc/html/variant.html `boost::variant`] to other boost libs]
+[template boost[lib] '''<ulink url="http://www.boost.org/doc/html/'''[lib]'''.html"><code><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">'''[lib]'''</phrase></code></ulink>''']
+[template boost_gil '''<ulink url="http://www.boost.org/doc/libs/release/libs/gil/doc"><code><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">gil</phrase></code></ulink>''']
+[template general_boost[] [@http://www.boost.org Boost]]
+[template cmake[] [@http://www.cmake.org CMake]]
+[template hg[] [@http://mercurial.selenic.com/ mercurial]]
+[template cgal[] [@http://www.cgal.org/ CGAL]]
+
+[template biblioref[name] '''<biblioref linkend="'''[name]'''"/>''']
+
+[template todo[text]
+[warning *TODO:* [text]]
+]
+
+[include librjmcmc_introduction.qbk]
+[include librjmcmc_compilation.qbk]
+[include librjmcmc_quickstart.qbk]
+[include librjmcmc_rjmcmc.qbk]
+[include librjmcmc_mpp.qbk]
+[include librjmcmc_simulated_annealing.qbk]
+[include librjmcmc_samples.qbk]
+[include librjmcmc_bibliography.qbk]
+[include librjmcmc_reference.qbk]
