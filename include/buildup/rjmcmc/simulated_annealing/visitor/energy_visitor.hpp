@@ -1,5 +1,5 @@
-#ifndef ENERGY_VISITOR_HPP_INCLUDED
-#define ENERGY_VISITOR_HPP_INCLUDED
+#ifndef ENERGY_VISITOR_HPP
+#define ENERGY_VISITOR_HPP
 
 #include <fstream>
 namespace simulated_annealing
@@ -8,10 +8,10 @@ namespace simulated_annealing
 class energy_visitor
 {
 public:
-    energy_visitor(unsigned int nbsave,std::ofstream& ofs) : m_save(nbsave),m_iter(0), m_out(ofs) {}
+    inline energy_visitor(unsigned int nbsave,std::ofstream& ofs) : m_save(nbsave),m_iter(0), m_out(ofs) {}
 
 
-    void init(int, int s)
+    inline void init(int, int s)
     {
 //            m_save = s;
 //            m_iter = 0;
@@ -30,10 +30,10 @@ public:
     {
         save(config);
     }
-
     template<typename Configuration, typename Sampler>
     void visit(const Configuration& config, const Sampler&, double)
     {
+
         if((++m_iter)%m_save==0)
         {
             save(config);
@@ -53,4 +53,4 @@ private:
 
 }// namespace simulated_annealing
 
-#endif // ENERGY_VISITOR_HPP_INCLUDED
+#endif // ENERGY_VISITOR_HPP

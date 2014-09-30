@@ -1,7 +1,10 @@
-#ifndef PLU_GLOBAL_ENERGY_HPP_INCLUDED
-#define PLU_GLOBAL_ENERGY_HPP_INCLUDED
+#ifndef PLU_GLOBAL_ENERGY_HPP
+#define PLU_GLOBAL_ENERGY_HPP
 
+#include "rjmcmc/rjmcmc/energy/energy.hpp"
 #include "buildup/plu/Lot.hpp"
+#include "buildup/plu/Expression.hpp"
+#include <map>
 
 template<typename Value = double>
 class plu_global_lcr : public rjmcmc::energy<Value>
@@ -96,4 +99,4 @@ private:
 
 };
 
-#endif // PLU_GLOBAL_ENERGY_HPP_INCLUDED
+#endif // PLU_GLOBAL_ENERGY_HPP

@@ -1,7 +1,8 @@
 #ifndef GEOMETRY_CUBOID_INTERSECTION_HPP
 #define GEOMETRY_CUBOID_INTERSECTION_HPP
 
-#include <rjmcmc/geometry/intersection/Rectangle_2_intersection.hpp>
+#include "buildup/rjmcmc/geometry/Cuboid.hpp"
+#include "rjmcmc/geometry/intersection/Rectangle_2_intersection.hpp"
 namespace geometry
 {
 

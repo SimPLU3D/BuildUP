@@ -2,8 +2,8 @@
 #define GRAPH_CONFIGURATION_PLU_HPP
 
 #include <boost/graph/adjacency_list.hpp>
-//#include <rjmcmc/mpp/configuration/configuration.hpp>
-#include <rjmcmc/util/variant.hpp>
+//#include "rjmcmc/mpp/configuration/configuration.hpp"
+#include "rjmcmc/util/variant.hpp"
 #include "configuration_plu.hpp"
 
 namespace marked_point_process
@@ -26,37 +26,21 @@ public:
 private:
     class edge
     {
+        double m_energy;
     public:
         edge() : m_energy(0) {}
-        inline double energy() const
-        {
-            return m_energy;
-        }
-        inline void energy(double e)
-        {
-            m_energy = e;
-        }
-
-    private:
-        double m_energy;
+        inline double energy() const {return m_energy;}
+        inline void energy(double e){m_energy = e;}
     };
 
     class node
     {
-    public:
-        node(const value_type& obj, double e) : m_value(obj), m_energy(e) { }
-        inline const value_type& value() const
-        {
-            return m_value;
-        }
-        inline double energy() const
-        {
-            return m_energy;
-        }
-
-    private:
         value_type	m_value;
         double      m_energy;
+    public:
+        node(const value_type& obj, double e) : m_value(obj), m_energy(e) { }
+        inline const value_type& value() const{return m_value;}
+        inline double energy() const{return m_energy;}
     };
     typedef boost::adjacency_list<OutEdgeList, VertexList, boost::undirectedS, node, edge> graph_type;
     typedef typename graph_type::out_edge_iterator	out_edge_iterator;
@@ -87,85 +71,37 @@ public:
         , m_dBorder(0.)
         , m_dPair(0.)
         , m_hDiff(0.)
-        , m_lcr(0.)
-        , m_far(0.)
         , m_delta_dBorder(0.)
         , m_delta_dPair(0.)
         , m_delta_hDiff(0.)
         , m_delta_lcr(0.)
         , m_delta_far(0.)
-    {}
+    {
+        m_lcr = audit_lcr();
+        m_far = audit_far();
+        m_death_dBorder = rjmcmc::apply_visitor(unary_dBorder,2,0);
+    }
+
     ~graph_configuration_plu() {}
 
-    void init_energy(double lcr,double far)
-    {
-        m_lcr = lcr;
-        m_far = far;
-    }
-
     // values
-    inline size_t size() const
-    {
-        return num_vertices(m_graph);
-    }
-    inline bool empty() const
-    {
-        return (num_vertices(m_graph)==0);
-    }
-    inline iterator begin()
-    {
-        return vertices(m_graph).first;
-    }
-    inline iterator end  ()
-    {
-        return vertices(m_graph).second;
-    }
-    inline const_iterator begin() const
-    {
-        return vertices(m_graph).first;
-    }
-    inline const_iterator end  () const
-    {
-        return vertices(m_graph).second;
-    }
-    inline const value_type& operator[]( const_iterator v ) const
-    {
-        return m_graph[ *v ].value();
-    }
-    inline const value_type& value( const_iterator v ) const
-    {
-        return m_graph[ *v ].value();
-    }
-    inline double energy( const_iterator v ) const
-    {
-        return m_graph[ *v ].energy();
-    }
+    inline size_t size() const{return num_vertices(m_graph);}
+    inline bool empty() const{return (num_vertices(m_graph)==0);}
+    inline iterator begin(){return vertices(m_graph).first;}
+    inline iterator end  (){return vertices(m_graph).second;}
+    inline const_iterator begin() const{return vertices(m_graph).first;}
+    inline const_iterator end  () const{return vertices(m_graph).second;}
+    inline const value_type& operator[]( const_iterator v ) const{return m_graph[ *v ].value();}
+    inline const value_type& value( const_iterator v ) const{return m_graph[ *v ].value();}
+    inline double energy( const_iterator v ) const{return m_graph[ *v ].energy();}
 
     // interactions
-    inline size_t size_of_interactions   () const
-    {
-        return num_edges(m_graph);
-    }
-    inline edge_iterator interactions_begin()
-    {
-        return edges(m_graph).first;
-    }
-    inline edge_iterator interactions_end  ()
-    {
-        return edges(m_graph).second;
-    }
-    inline const_edge_iterator interactions_begin() const
-    {
-        return edges(m_graph).first;
-    }
-    inline const_edge_iterator interactions_end  () const
-    {
-        return edges(m_graph).second;
-    }
-    inline double energy( edge_iterator e ) const
-    {
-        return m_graph[ *e ].energy();
-    }
+    inline size_t size_of_interactions   () const{return num_edges(m_graph);}
+    inline edge_iterator interactions_begin(){return edges(m_graph).first;}
+    inline edge_iterator interactions_end  (){return edges(m_graph).second;}
+    inline const_edge_iterator interactions_begin() const{return edges(m_graph).first;}
+    inline const_edge_iterator interactions_end  () const{return edges(m_graph).second;}
+    inline double energy( edge_iterator e ) const{return m_graph[ *e ].energy();}
 
     // evaluators
 
@@ -225,6 +161,13 @@ public:
         m_delta_lcr += rjmcmc::apply_visitor(m_global_lcr,*this,modif) - m_lcr;
         m_delta_far += rjmcmc::apply_visitor(m_global_far,*this,modif) - m_far;
 
+
+        if(int n = modif.death().size())
+        {
+            if(std::abs(m_delta_dBorder)>m_death_dBorder*n)
+                return m_delta_dBorder;
+        }
+
         return m_delta_dBorder+m_delta_dPair+m_delta_hDiff+m_delta_lcr+m_delta_far;
     }
 
@@ -248,10 +191,11 @@ public:
             add_vertex(n, m_graph);
         }
 
-
         m_dBorder += m_delta_dBorder;
         m_dPair = audit_dPair();
         m_hDiff = audit_hDiff();
+//        m_lcr = audit_lcr();
+//        m_far = audit_far();
         m_lcr += m_delta_lcr;
         m_far += m_delta_far;
 
@@ -273,40 +217,16 @@ public:
     }
 
     //configuration accessors
-    inline double energy_dBorder() const
-    {
-        return m_dBorder;
-    }
-    inline double energy_dPair  () const
-    {
-        return m_dPair;
-    }
-    inline double energy_hDiff  () const
-    {
-        return m_hDiff;
-    }
-    inline double energy_lcr    () const
-    {
-        return m_lcr;
-    }
-    inline double energy_far    () const
-    {
-        return m_far;
-    }
-    inline double energy        () const
-    {
-        return m_dBorder+m_dPair+m_hDiff+m_lcr+m_far;
-    }
-    inline double unary_energy  () const
-    {
-        return m_dBorder;
-    }
-    inline double binary_energy () const
-    {
-        return m_dPair+m_hDiff;
-    }
+    inline double energy_dBorder() const{return m_dBorder;}
+    inline double energy_dPair  () const{return m_dPair; }
+    inline double energy_hDiff  () const{return m_hDiff;}
+    inline double energy_lcr    () const{return m_lcr;}
+    inline double energy_far    () const{return m_far;}
+    inline double energy        () const{return m_dBorder+m_dPair+m_hDiff+m_lcr+m_far;}
+    inline double unary_energy  () const{return m_dBorder;}
+    inline double binary_energy () const{return m_dPair+m_hDiff;}
 
-    double audit_dBorder() const
+    inline double audit_dBorder() const
     {
         double e = 0.;
         for (const_iterator i=begin(); i != end(); ++i)
@@ -314,7 +234,7 @@ public:
         return e;
     }
 
-    double audit_dPair() const
+    inline double audit_dPair() const
     {
         double e = 0.;
 
@@ -326,12 +246,10 @@ public:
                 for(; j!=end(); ++j)
                     e += rjmcmc::apply_visitor(m_binary_dPair, value(i),value(j) );
             }
-
-
         return e;
     }
 
-    double audit_hDiff() const
+    inline double audit_hDiff() const
     {
         double e = 0.;
 
@@ -343,8 +261,6 @@ public:
                 for(; j!=end(); ++j)
                     e += rjmcmc::apply_visitor(m_binary_hDiff, value(i),value(j) );
             }
-
-
         return e;
     }
 
@@ -361,25 +277,10 @@ public:
     }
 
 
-    inline double audit_energy() const
-    {
-        return audit_dBorder() + audit_dPair() + audit_hDiff() + audit_lcr()+audit_far();
-    }
-
-    inline double audit_unary_energy() const
-    {
-        return audit_dBorder();
-    }
-
-    inline double audit_binary_energy() const
-    {
-        return audit_dPair() + audit_hDiff();
-    }
-
-    unsigned int audit_structure() const
-    {
-        return 0;
-    }
+    inline double audit_energy() const{return audit_dBorder() + audit_dPair() + audit_hDiff() + audit_lcr()+audit_far();}
+    inline double audit_unary_energy() const{return audit_dBorder();}
+    inline double audit_binary_energy() const{return audit_dPair() + audit_hDiff();}
+    unsigned int audit_structure() const{return 0;}
 
 private:
     graph_type m_graph;
@@ -401,6 +302,8 @@ private:
     double m_delta_hDiff;
     double m_delta_lcr;
     double m_delta_far;
+
+    double m_death_dBorder;
 
 };
 

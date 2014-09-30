@@ -1,10 +1,9 @@
 #ifndef CUBOID_BLDG_COORDINATES_HPP
 #define CUBOID_BLDG_COORDINATES_HPP
 
+#include "rjmcmc/geometry/coordinates/coordinates.hpp"
 #include "buildup/rjmcmc/geometry/Cuboid.hpp"
-#include <rjmcmc/geometry/coordinates/coordinates.hpp>
 #include <boost/iterator/iterator_facade.hpp>
-#include <boost/random/uniform_smallint.hpp>
 
 template<typename K>
 struct cuboid_coordinates_iterator
@@ -35,7 +34,6 @@ private:
         m_coord[4] = r.ratio();
         m_coord[5] = r.h();
     }
-
     friend class boost::iterator_core_access;
     void increment()
     {
@@ -48,7 +46,6 @@ private:
     }
     FT m_coord[dimension];
     unsigned int m_i;
-
 };
 
 template<typename K>

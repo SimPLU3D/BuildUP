@@ -1,7 +1,7 @@
 #ifndef GEOMETRY_CUBOID_HPP
 #define GEOMETRY_CUBOID_HPP
 
-#include <rjmcmc/geometry/Rectangle_2.hpp>
+#include "rjmcmc/geometry/Rectangle_2.hpp"
 #include <cmath>
 
 namespace geometry
@@ -57,12 +57,6 @@ public:
                 dMin=d;
         }
         return dMin;
-    }
-
-    inline void translate(double x,double y)
-    {
-        Vector_2 v(x,y);
-        _rect.translate(v);
     }
 
     inline bool is_degenerate() const

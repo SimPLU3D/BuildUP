@@ -39,22 +39,10 @@ class modification
 public:
     typedef	Birth birth_type;
     typedef Death death_type;
-    const birth_type& birth() const
-    {
-        return m_birth;
-    }
-    const death_type& death() const
-    {
-        return m_death;
-    }
-    birth_type& birth()
-    {
-        return m_birth;
-    }
-    death_type& death()
-    {
-        return m_death;
-    }
+    const birth_type& birth() const{return m_birth;}
+    const death_type& death() const{return m_death;}
+    birth_type& birth(){return m_birth;}
+    death_type& death(){return m_death;}
 
     // manipulators
     inline void apply(Configuration &c) const

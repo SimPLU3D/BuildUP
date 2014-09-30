@@ -1,8 +1,10 @@
 #ifndef PLU_BINARY_ENERGY_HPP
 #define PLU_BINARY_ENERGY_HPP
 
+#include "rjmcmc/rjmcmc/energy/energy.hpp"
 #include "buildup/plu/Lot.hpp"
-
+#include "buildup/plu/Expression.hpp"
+#include <map>
 
 template<typename Value = double>
 class plu_binary_heightDiff: public rjmcmc::energy<Value>
@@ -13,15 +15,15 @@ public:
     template<typename T>
     inline result_type operator()(const T &t1, const T &t2) const
     {
-        Value d = t1.distance2cuboid(t2);
-
-        if(geometry::do_intersect(t1,t2))
-            d = -d;
-
-        Value hMax = t1.h()>t2.h()? t1.h():t2.h();
-
-        if(d>=hMax)
-            return 0;
+//        Value d = t1.distance2cuboid(t2);
+//
+//        if(geometry::do_intersect(t1,t2))
+//            d = -d;
+//
+//        Value hMax = t1.h()>t2.h()? t1.h():t2.h();
+//
+//        if(d>=hMax)
+//            return 0;
 
 
         Value hDiff = std::abs(t1.h()-t2.h());
@@ -47,7 +49,7 @@ public:
     typedef Value result_type;
 
     template<typename T>
-    inline result_type operator()(const T &t1,const T &t2) const
+    inline double operator()(const T &t1,const T &t2) const
     {
         Value d = t1.distance2cuboid(t2);
         if(d!=d || std::isinf(d))
