@@ -1,5 +1,3 @@
-#define USE_OSG
-
 #include "buildup/plu/Lot.hpp"
 #include "buildup/plu/Building.hpp"
 #include "buildup/plu/Rule.hpp"
@@ -14,7 +12,7 @@
 #include <boost/filesystem.hpp>
 
 #ifdef USE_OSG
-#include "buildup/io/osg.hpp"
+#include "buildup/viewer/osg.hpp"
 #endif
 
 int launchTest(int,int,std::string&,std::string&);

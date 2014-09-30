@@ -1,0 +1,9 @@
+BuildUP: Building generator for Urban Planning
+
+It automatically generates buildings within a given parcel, complying with local urban planning rules (PLU in French, Plan Local d'Urbanisme), and of optimized urban indicators (e.g. floor area ratio).
+
+Dependencies:
+rjmcmc https://github.com/IGNF/librjmcmc
+Boost (components: boost_system boost_filesystem)
+GDAL
+OpenSceneGraph (optional for viewer)

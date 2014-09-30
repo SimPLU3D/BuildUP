@@ -11,6 +11,7 @@
 #include <cmath>
 #include <map>
 #include <vector>
+#include <iostream>
 
 enum class EnergyFuncType
 {

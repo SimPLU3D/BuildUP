@@ -1,4 +1,4 @@
-#include "buildup/io/osg.hpp"
+#include "buildup/viewer/osg.hpp"
 
 #include <osg/ref_ptr>
 #include <osg/Group>
