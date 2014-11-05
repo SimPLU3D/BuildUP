@@ -39,19 +39,19 @@ typedef marked_point_process::graph_configuration_plu<
 #include "buildup/plu/Variate.hpp"
 #include "buildup/plu/Functor.hpp"
 #include "buildup/plu/Predicate.hpp"
-typedef Discrete_Variate<Center_Functor> Variate_Center;
-typedef Discrete_Variate<Rho_Functor> Variate_Rho;
-typedef Discrete_Variate<Theta_Functor> Variate_Theta;
-typedef Discrete_Variate<Ratio_Functor> Variate_Ratio;
-typedef Discrete_Variate<Height_Functor> Variate_Height;
-typedef VariatePLU<Variate_Center,Variate_Rho,Variate_Theta,Variate_Ratio,Variate_Height,Predicate> VariateAll;
+typedef Uniform_Discrete_Variate<Center_Functor> Variate_Center;
+typedef Weighted_Discrete_Variate<Width_Functor> Variate_Width;
+typedef Uniform_Discrete_Variate<Length_Functor> Variate_Length;
+typedef Uniform_Discrete_Variate<Theta_Functor> Variate_Theta;
+typedef Uniform_Discrete_Variate<Height_Functor> Variate_Height;
+typedef VariatePLU<Variate_Center,Variate_Width,Variate_Length,Variate_Theta,Variate_Height,Predicate> VariateAll;
 
 /***** mpp smapler *****/
 #include "rjmcmc/mpp/kernel/uniform_birth.hpp"
 typedef marked_point_process::object_birth<object,VariateAll> Birth;
 
-#include "rjmcmc/rjmcmc/distribution/poisson_distribution.hpp"
-typedef rjmcmc::poisson_distribution distribution;
+#include "buildup/plu/Distribution.hpp"
+typedef poisson_distribution_max distribution;
 
 #include "rjmcmc/mpp/direct_sampler.hpp"
 typedef marked_point_process::direct_sampler<distribution,Birth> d_sampler;
@@ -80,7 +80,12 @@ typedef rjmcmc::sampler<d_sampler,acceptance
 
 /***** simulated_annealing *****/
 #include "rjmcmc/simulated_annealing/schedule/geometric_schedule.hpp"
+
 #include "rjmcmc/simulated_annealing/end_test/max_iteration_end_test.hpp"
+//#include "rjmcmc/simulated_annealing/end_test/delta_energy_end_test.hpp"
+#include "rjmcmc/simulated_annealing/end_test/composite_end_test.hpp"
+#include "buildup/rjmcmc/simulated_annealing/end_test/max_num_end_test.hpp"
+
 
 #include "buildup/rjmcmc/simulated_annealing/visitor/energy_visitor.hpp"
 #include "buildup/rjmcmc/simulated_annealing/visitor/geom_visitor.hpp"

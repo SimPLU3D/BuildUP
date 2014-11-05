@@ -1,3 +1,4 @@
+#define USE_OSG
 #include "buildup/plu/Lot.hpp"
 #include "buildup/plu/Building.hpp"
 #include "buildup/plu/Rule.hpp"
@@ -76,6 +77,7 @@ int launchTest(int iTest,int idLot,std::string& filenameLot,std::string& filenam
     lot->insert_ruleEnergy(RuleType::FAR,makeRule_far(iTest));
     lot->set_ruleGeom(makeRuleGeom(iTest));
     lot->set_isRectLike(isRectLike(iTest));
+    lot->set_nBldgMax(makeRule_nMax(iTest));
 
     //enter number of experiments
     int nExp = -1;

@@ -11,25 +11,43 @@ class  RuleGeom
     double _hMin;
     double _hMax;
     double _hFloor;
-    std::vector< std::array<double,1> > _rho;
+    double _lMin;
+    double _lMax;
+    double _wMin;
+    double _wMax;
+    std::vector< double > _wPeaks;
+    //description strings
     const char* _strH;
+    const char* _strL;
     const char* _strW;
 
 public:
+    inline RuleGeom(void):_hMin(-1),_hMax(-1),_hFloor(-1),_lMin(-1),_lMax(-1),_wMin(-1),_wMax(-1){}
+
 //sets
     inline void hMin(double h){_hMin=h;}
     inline void hMax(double h){_hMax=h;}
     inline void hFloor(double h){_hFloor=h;}
-    inline void addRho(double rho){_rho.push_back(std::array<double,1> {rho});}
+    inline void lMin(double l){_lMin=l;}
+    inline void lMax(double l){_lMax=l;}
+    inline void wMin(double w){_wMin=w;}
+    inline void wMax(double w){_wMax=w;}
+    inline void add_widthPeak(double p){_wPeaks.push_back(p);}
     inline void strH(const char* s){_strH = s;}
+    inline void strL(const char* s){_strL = s;}
     inline void strW(const char* s){_strW = s;}
 
 //gets
     inline double hMin() const{return _hMin;}
     inline double hMax() const{return _hMax;}
     inline double hFloor() const{return _hFloor;}
-    inline std::vector< std::array<double,1> >& rho(){return _rho;}
+    inline double lMin() const{return _lMin;}
+    inline double lMax() const{return _lMax;}
+    inline double wMin() const{return _wMin;}
+    inline double wMax() const{return _wMax;}
+    inline std::vector< double >& wPeaks(){return _wPeaks;}
     inline const char* strH() const{return _strH;}
+    inline const char* strL() const{return _strL;}
     inline const char* strW() const{return _strW;}
 };
 

@@ -12,5 +12,5 @@ RuleEnergy* makeRule_lcr(int iTest);
 RuleEnergy* makeRule_far(int iTest);
 RuleGeom* makeRuleGeom(int iTest);
 bool isRectLike(int iTest);
-
+int makeRule_nMax(int iTest);
 #endif // MAKERULE_HPP_INCLUDED

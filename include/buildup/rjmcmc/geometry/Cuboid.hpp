@@ -17,15 +17,17 @@ private:
     typedef typename T::FT                    FT;
 
     Rectangle_2<T> _rect;
-    FT _rho;
+    FT _width;
+    FT _length;
     FT _theta;
     FT _h;
 
 public:
     Cuboid():_rect(Rectangle_2<T>()),_h(0.) {}
 
-    Cuboid(const Point_2 &p,const FT &r, const FT &t, const FT&f, const FT &g)
-        :_rect(Rectangle_2<T>(p,Vector_2(r*std::cos(t),r*std::sin(t)),f)),_rho(r),_theta(t),_h(g) {}
+    Cuboid(const Point_2 &p,const FT &w, const FT &l, const FT&t, const FT &h)
+        :_rect(Rectangle_2<T>(p,Vector_2(w*0.5*std::cos(t),w*0.5*std::sin(t)),l/w))
+        ,_width(w),_length(l),_theta(t),_h(h) {}
 
     FT distance2cuboid(const Cuboid<T> & o) const
     {
@@ -59,41 +61,16 @@ public:
         return dMin;
     }
 
-    inline bool is_degenerate() const
-    {
-        return _rect.is_degenerate();
-    }
-
-    inline const Rectangle_2<T>& bottom() const
-    {
-        return _rect;
-    }
-    inline const Vector_2& normal() const
-    {
-        return _rect.normal();
-    }
-    inline const FT   ratio () const
-    {
-        return _rect.ratio();
-    }
-    inline const FT   rho() const
-    {
-        return _rho;
-    }
-    inline const FT   theta() const
-    {
-        return _theta;
-    }
-    inline const FT   h() const
-    {
-        return _h;
-    }
-    inline const FT   area() const
-    {
-        FT l1 = 2*sqrt(this->normal().squared_length());
-        FT l2 = l1*this->ratio();
-        return l1*l2;
-    }
+    inline bool is_degenerate() const{return (_h && _rect.is_degenerate());}
+    inline const Rectangle_2<T>& bottom()   const{return _rect;}
+    inline const Vector_2& normal()         const{return _rect.normal();}
+ //   inline const FT   ratio ()  const{return _rect.ratio();}
+    inline const FT   width()   const{return _width;}
+    inline const FT   length()  const{return _length;}
+    inline const FT   theta()   const{return _theta;}
+    inline const FT   h()       const{return _h;}
+    inline const FT   area()    const{return _width*_length;}
+    inline const FT   volume()  const{return _width*_length*_h;}
 
 
 private:

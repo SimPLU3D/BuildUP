@@ -9,65 +9,65 @@
 
 //translate the edge parallel to the normal (short edge); width is fixed
 //TODO: predicate (if inside parcel)
-template<unsigned int N=0>
-struct cuboid_edge_translation_transform
-{
-    enum { dimension = 7 };
-    typedef Cuboid value_type;
-
-    template<int I,typename Iterator>
-    inline double abs_jacobian(Iterator it) const
-    {
-        return 1.;
-    }
-
-    template<int I, typename IteratorIn,typename IteratorOut>
-    inline double apply  (IteratorIn in, IteratorOut out) const
-    {
-        double res = abs_jacobian<I> (in);
-        typedef typename K::FT FT;
-        FT x = *in++;
-        FT y = *in++;
-        FT rho = *in++;
-        FT theta = *in++;
-        FT r = *in++;
-        FT h = *in++;
-        FT s = *in++;
-
-        FT u = rho*std::cos(theta);
-        FT v = rho*std::sin(theta);
-        FT f = std::max(1/r,exp(4.0*(s-0.5))); //f >= 1/r  so that new ratio f*r>=1
-        //FT f = s+0.5;
-
-
-//        if(f*r<1) //new ratio <1
-//        {
-//            *out++ = x-r*v*(f-1);
-//            *out++ = y+r*u*(f-1);
-//            *out++ = rho*f*r;
-//            *out++ = theta+Pi/2;
-//            *out++ = 1/f*r;
-//            *out++ = h;
-//            *out++ = 1.0-s;
-//        }
+//template<unsigned int N=0>
+//struct cuboid_edge_translation_transform
+//{
+//    enum { dimension = 7 };
+//    typedef Cuboid value_type;
 //
-//        else{
-        *out++ = x-r*v*(f-1);
-        *out++ = y+r*u*(f-1);
-        *out++ = rho;
-        *out++ = theta;
-        *out++ = f*r;
-        *out++ = h;
-        *out++ = 1.0-s;
-//            }
-        return res;
-
-    }
-
-};
-
-
-//controlled wrt width
+//    template<int I,typename Iterator>
+//    inline double abs_jacobian(Iterator it) const
+//    {
+//        return 1.;
+//    }
+//
+//    template<int I, typename IteratorIn,typename IteratorOut>
+//    inline double apply  (IteratorIn in, IteratorOut out) const
+//    {
+//        double res = abs_jacobian<I> (in);
+//        typedef typename K::FT FT;
+//        FT x = *in++;
+//        FT y = *in++;
+//        FT rho = *in++;
+//        FT theta = *in++;
+//        FT r = *in++;
+//        FT h = *in++;
+//        FT s = *in++;
+//
+//        FT u = rho*std::cos(theta);
+//        FT v = rho*std::sin(theta);
+//        FT f = std::max(1/r,exp(4.0*(s-0.5))); //f >= 1/r  so that new ratio f*r>=1
+//        //FT f = s+0.5;
+//
+//
+////        if(f*r<1) //new ratio <1
+////        {
+////            *out++ = x-r*v*(f-1);
+////            *out++ = y+r*u*(f-1);
+////            *out++ = rho*f*r;
+////            *out++ = theta+Pi/2;
+////            *out++ = 1/f*r;
+////            *out++ = h;
+////            *out++ = 1.0-s;
+////        }
+////
+////        else{
+//        *out++ = x-r*v*(f-1);
+//        *out++ = y+r*u*(f-1);
+//        *out++ = rho;
+//        *out++ = theta;
+//        *out++ = f*r;
+//        *out++ = h;
+//        *out++ = 1.0-s;
+////            }
+//        return res;
+//
+//    }
+//
+//};
+//
+//
+////controlled wrt width
 template<unsigned int N=0>
 struct cuboid_height_scaling_transform
 {
@@ -91,13 +91,12 @@ struct cuboid_height_scaling_transform
         typedef typename K::FT FT;
         *out++ = *in++;
         *out++ = *in++;
-        FT rho = *out++ = *in++;
+        FT w = *out++ = *in++;
         *out++ = *in++;
         *out++ = *in++;
         FT h = *in++;
         FT s = *in++;
 
-        double w = rho*2;
         double hMax = _hMax;
         if(w<5) // 1 floor
             hMax = _hFloor;

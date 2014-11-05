@@ -138,6 +138,7 @@ public:
     inline double yMax() const{return _box.MaxY;}
     inline RuleEnergy* ruleEnergy(RuleType t){return _ruleEnergy[t];}
     inline RuleGeom* ruleGeom() const{return _ruleGeom;}
+    inline int nBldgMax() const {return _nBldgMax;}
     inline double translatedX() const{return _translatedX;}
     inline double translatedY() const{return _translatedY;}
     inline double invTransX() const{return -_translatedX;}
@@ -155,6 +156,7 @@ public:
     inline void add_seg2border(int idSeg, int idBorder){(_borders.find(idBorder)->second).addSeg(&(_borderSegs.find(idSeg)->second));}
     inline void insert_ruleEnergy(RuleType t, RuleEnergy* r){_ruleEnergy[t] = r;}
     inline void set_ruleGeom(RuleGeom* r){_ruleGeom=r;}
+    inline void set_nBldgMax(int n){_nBldgMax = n;}
     void set_isRectLike(bool);
     void set_name_borders();
 
@@ -204,6 +206,7 @@ private:
 
     std::map< RuleType, RuleEnergy*> _ruleEnergy;
     RuleGeom* _ruleGeom;
+    int _nBldgMax;
 
     int _idRefSeg;
     double _thetaRefSeg;

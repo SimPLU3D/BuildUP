@@ -25,14 +25,14 @@ struct cuboid_coordinates_iterator
     typedef typename K::FT FT;
 
 private:
-    void init(const geometry::Cuboid<K>& r)
+    void init(const geometry::Cuboid<K>& c)
     {
-        m_coord[0] = r.bottom().center().x();
-        m_coord[1] = r.bottom().center().y();
-        m_coord[2] = r.rho();
-        m_coord[3] = r.theta();
-        m_coord[4] = r.ratio();
-        m_coord[5] = r.h();
+        m_coord[0] = c.bottom().center().x();
+        m_coord[1] = c.bottom().center().y();
+        m_coord[2] = c.width();
+        m_coord[3] = c.length();
+        m_coord[4] = c.theta();
+        m_coord[5] = c.h();
     }
     friend class boost::iterator_core_access;
     void increment()
@@ -62,12 +62,12 @@ struct object_from_coordinates< geometry::Cuboid<K> >
     {
         typename K::FT x = *it++;
         typename K::FT y = *it++;
-        typename K::FT rho = *it++;
+        typename K::FT width = *it++;
+        typename K::FT length = *it++;
         typename K::FT theta = *it++;
-        typename K::FT r = *it++;
         typename K::FT h = *it;
         typename K::Point_2  p(x,y);
-        return geometry::Cuboid<K>(p,rho,theta,r,h);
+        return geometry::Cuboid<K>(p,width,length,theta,h);
     }
 };
 

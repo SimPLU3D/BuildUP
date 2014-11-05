@@ -31,6 +31,18 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
         area+=c[it].area();
         areaF+=c[it].area()*(int)(c[it].h()/hF);
 
+        //width
+        std::cout<<"  ruleWidth: "<<lot->ruleGeom()->strW()<<"\n";
+        std::cout<<"    --width = "<<c[it].width()<<"\n";
+        fs<<"  ruleWidth: "<<lot->ruleGeom()->strW()<<"\n";
+        fs<<"    --width = "<<c[it].width()<<"\n";
+
+        //length
+        std::cout<<"  ruleLength: "<<lot->ruleGeom()->strL()<<"\n";
+        std::cout<<"    --length = "<<c[it].length()<<"\n";
+        fs<<"  ruleLength: "<<lot->ruleGeom()->strL()<<"\n";
+        fs<<"    --length = "<<c[it].length()<<"\n";
+
         //height
         std::cout<<"  ruleHeight: "<<lot->ruleGeom()->strH()<<"\n";
         std::cout<<"    --h = "<<c[it].h()<<"\n";

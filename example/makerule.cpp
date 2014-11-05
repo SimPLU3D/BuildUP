@@ -357,34 +357,57 @@ RuleGeom* makeRuleGeom(int iTest)
 
     switch (iTest){
     case 1:
+        rule->strH("[6,18]");
         rule->hMin(6);
         rule->hMax(18);
         rule->hFloor(3);
-        rule->strH("[6,18]");
-        rule->addRho(2.5) ;
-        rule->addRho(5);
+
+        rule->strL("[20,30]");
+        rule->lMin(20);
+        rule->lMax(30);
+
+        rule->strW("[10,16] peaks: 10,13,16");
+        rule->wMin(10);
+        rule->wMax(16);
+        rule->add_widthPeak(10);
+        rule->add_widthPeak(13);
+        rule->add_widthPeak(16);
         break;
     case 2:
+        rule->strH("[3.2,24]");
         rule->hMin(3.2);
         rule->hMax(24);
         rule->hFloor(3);
-        rule->strH("[3.2,24]");
-        rule->addRho(2.5) ;
-        rule->addRho(5);
+
+        rule->strL("[30,60]");
+        rule->lMin(30);
+        rule->lMax(60);
+
+        rule->strW("[10,16] peaks: 10,13,16");
+        rule->wMin(10);
+        rule->wMax(16);
+        rule->add_widthPeak(10);
+        rule->add_widthPeak(13);
+        rule->add_widthPeak(16);
+
         break;
-    case 4:
-        rule->hMin(6);
-        rule->hMax(24);
-        rule->hFloor(3);
-        rule->strH("[6,24]");
-        rule->addRho(2.5) ;
-        rule->addRho(5);
-        rule->addRho(7.5);
+    default:
         break;
     }
     return rule;
 }
 
+int makeRule_nMax(int iTest)
+{
+    switch (iTest){
+    case 1:
+        return 4;
+    case 2:
+        return 3;
+    default:
+        return 0;
+    }
+}
 
 bool isRectLike(int iTest)
 {

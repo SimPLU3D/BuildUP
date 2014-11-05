@@ -76,6 +76,7 @@ public:
         , m_delta_hDiff(0.)
         , m_delta_lcr(0.)
         , m_delta_far(0.)
+        , m_num(0)
     {
         m_lcr = audit_lcr();
         m_far = audit_far();
@@ -182,6 +183,7 @@ public:
         {
             clear_vertex ( **dit , m_graph);
             remove_vertex( **dit , m_graph);
+            m_num--;
         }
         bci bbeg = modif.birth().begin();
         bci bend = modif.birth().end();
@@ -189,6 +191,7 @@ public:
         {
             node n(*bit, rjmcmc::apply_visitor(m_unary_dBorder,*bit));
             add_vertex(n, m_graph);
+            m_num++;
         }
 
         m_dBorder += m_delta_dBorder;
@@ -198,7 +201,6 @@ public:
 //        m_far = audit_far();
         m_lcr += m_delta_lcr;
         m_far += m_delta_far;
-
     }
 
     inline void clear()
@@ -225,6 +227,7 @@ public:
     inline double energy        () const{return m_dBorder+m_dPair+m_hDiff+m_lcr+m_far;}
     inline double unary_energy  () const{return m_dBorder;}
     inline double binary_energy () const{return m_dPair+m_hDiff;}
+    inline int    getNumObjects () const{return m_num;}
 
     inline double audit_dBorder() const
     {
@@ -304,7 +307,7 @@ private:
     double m_delta_far;
 
     double m_death_dBorder;
-
+    int m_num;
 };
 
 }; // namespace marked_point_process
