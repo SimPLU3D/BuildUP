@@ -83,7 +83,6 @@ int launchTest(int iTest,std::vector<int>& idLots,std::string& filenameLot,std::
         //find the target parcel
         int idLot = idLots[k];
         Lot* lot = &(lots.find(idLot)->second);
-        std::cout<<"\nlotID: "<<idLot<<" area: "<<lot->area()<<"\n";
 
         //translate parcel coordinates for the sake of computation
         lot->translate(-(lot->xMin()),-(lot->yMin()));
@@ -126,27 +125,24 @@ int launchTest(int iTest,std::vector<int>& idLots,std::string& filenameLot,std::
 
         //dir to save energy evolution
         std::string dirEnergy(outDir+"/energy");
-        if(!boost::filesystem::exists(dirEnergy))
-            boost::filesystem::create_directory(dirEnergy);
+        boost::filesystem::create_directory(dirEnergy);
         //dir to save geometry evolution
         std::string dirBldg(outDir+"/bldgs");
-        if(!boost::filesystem::exists(dirBldg))
-            boost::filesystem::create_directory(dirBldg);
+        boost::filesystem::create_directory(dirBldg);
         ////TODO: copy parcel to this folder
 
         //dir to save final results
         std::string dirBldgFinal(outDir+"/bldgs_final");
-        if(!boost::filesystem::exists(dirBldgFinal))
-            boost::filesystem::create_directory(dirBldgFinal);
+        boost::filesystem::create_directory(dirBldgFinal);
         ////TODO: copy parcel to this folder
 
-
         //file to save statistic data
-        const char* fileStat = (outDir+"/statistics.txt").c_str();
-        if(boost::filesystem::exists(fileStat))
-            remove(fileStat);
+        std::string fileStat = (outDir+"/statistics.txt");
         std::ofstream fsStat;
         fsStat.open(fileStat,std::fstream::app);
+        std::cout<<"\nlotID: "<<idLot<<" area: "<<lot->area()<<"\n";
+        fsStat<<"\nlotID: "<<idLot<<" area: "<<lot->area()<<"\n";
+
         //statistics for all experiments
         std::map<int,double> lcrVals,farVals,eVals,times;
 
