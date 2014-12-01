@@ -16,11 +16,12 @@ public:
     {
         double cx = *it++;
         double cy = *it++;
-        double rho = *it++;
+        double w = *it++;
+        double l = *it++;
         double theta = *it++;
-        double r = *it++;
-        double mx = rho*std::cos(theta);
-        double my = rho*std::sin(theta);
+        double mx = w*0.5*std::cos(theta);
+        double my = w*0.5*std::sin(theta);
+        double r = l/w;
         double nx = -r*my;
         double ny = r*mx;
 

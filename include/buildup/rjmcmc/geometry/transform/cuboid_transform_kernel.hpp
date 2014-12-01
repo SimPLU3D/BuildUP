@@ -2,10 +2,37 @@
 #define CUBOID_TRANSFORM_KERNEL_HPP
 
 #include "buildup/rjmcmc/geometry/Cuboid.hpp"
+#include "buildup/rjmcmc/geometry/coordinates/Cuboid_coordinates.hpp"
+#include "rjmcmc/util/random.hpp"
 #include <cmath>
 #ifndef PI
 #define PI 3.14159265
 #endif // #ifndef PI
+
+template< typename birth_type>
+struct cuboid_replacement
+{
+    typename birth_type::variate_type m_variate;
+    static int m_num;
+    typedef Cuboid value_type;
+    enum { dimension = coordinates_iterator<value_type>::dimension  };
+
+//    template<int I,typename Iterator>
+//    inline double abs_jacobian(Iterator it) const
+//    {
+//        return 1.;
+//    }
+    template<int I, typename IteratorIn,typename IteratorOut>
+    inline double apply  (IteratorIn in, IteratorOut out) const
+    {
+        m_num++;
+        m_variate(rjmcmc::random(),out);
+
+        return 1.;
+    }
+   cuboid_replacement(birth_type& birth):m_variate(birth.variate()){}
+};
+
 
 //translate the edge parallel to the normal (short edge); width is fixed
 //TODO: predicate (if inside parcel)

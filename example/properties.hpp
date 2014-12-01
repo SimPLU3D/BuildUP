@@ -3,6 +3,7 @@
 
 #include "buildup/plu/Lot.hpp"
 #include "buildup/plu/Expression.hpp"
+#include "buildup/plu/Predicate.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -18,7 +19,7 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
         fs<<"empty config"<<"\n";
         return ;
     }
-
+    //Predicate predicate(lot->polygon());
     double area=0,areaF=0,hF = lot->ruleGeom()->hFloor();
     int i = -1;
     typename Configuration::const_iterator it;
@@ -27,6 +28,10 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
         i++;
         std::cout<<"\nbldg "<<i<<"\n";
         fs<<"\nbldg "<<i<<"\n";
+
+//        std::cout<<"isInside "<<predicate(c[it])<<"\n";
+//        fs<<"isInside "<<predicate(c[it])<<"\n";
+
 
         area+=c[it].area();
         areaF+=c[it].area()*(int)(c[it].h()/hF);
@@ -50,13 +55,16 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
         fs<<"    --h = "<<c[it].h()<<"\n";
 
         //distance to borders
-        std::map<std::string,double> dist;
+        std::map<std::string,double> dist,hasWindow;
         std::map< std::string,double >::iterator itD;
         std::map<Var,double> var_value;
 
-        lot->dist2borders(c[it],dist);
+        lot->dist2borders(c[it],dist,hasWindow);
         for(itD=dist.begin();itD!=dist.end();++itD)
             var_value.insert(std::make_pair(Var("d"+itD->first),itD->second));
+
+        for(itD=hasWindow.begin();itD!=hasWindow.end();++itD)
+            var_value.insert(std::make_pair(Var("hasWindow"+itD->first),itD->second));
 
         double eFront=0,eSide=0,eBack=0;
         if(lot->hasRule(RuleType::DistFront))
@@ -68,12 +76,12 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
             {
                 if(itD->first.find("Front")==std::string::npos)
                     continue;
-                std::cout<<"    --"<<"d"+itD->first<<" = "<<itD->second<<"\n";
-                fs<<"    --"<<"d"+itD->first<<" = "<<itD->second<<"\n";
+                std::cout<<"    --"<<"d"+itD->first<<" = "<<itD->second<<" hasWindow:"<<hasWindow[itD->first]<<"\n";
+                fs<<"    --"<<"d"+itD->first<<" = "<<itD->second<<" hasWindow:"<<hasWindow[itD->first]<<"\n";
             }
 
             eFront = p.template get<double>("wdborder")*p.template get<double>("erej")*(lot->ruleEnergy(RuleType::DistFront))->energy(var_value,c[it].h());
-            std::cout<<"  eFront = "<<eFront<<"\n";
+            std::cout<<"  eFront = "<<eFront<< "\n";
             fs<<"  eFront = "<<eFront<<"\n";
         }
 
@@ -87,8 +95,8 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
                 if(itD->first.find("Side")==std::string::npos)
                     continue;
 
-                std::cout<<"    --"<<"d"+itD->first<<" = "<<itD->second<<"\n";
-                fs<<"    --"<<"d"+itD->first<<" = "<<itD->second<<"\n";
+                std::cout<<"    --"<<"d"+itD->first<<" = "<<itD->second<<" hasWindow:"<<hasWindow[itD->first]<<"\n";
+                fs<<"    --"<<"d"+itD->first<<" = "<<itD->second<<" hasWindow:"<<hasWindow[itD->first]<<"\n";
             }
 
 
@@ -107,8 +115,8 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
             {
                 if(itD->first.find("Back")==std::string::npos)
                     continue;
-                std::cout<<"    --"<<"d"+itD->first<<" = "<<itD->second<<"\n";
-                fs<<"    --"<<"d"+itD->first<<" = "<<itD->second<<"\n";
+                std::cout<<"    --"<<"d"+itD->first<<" = "<<itD->second<<" hasWindow:"<<hasWindow[itD->first]<<"\n";
+                fs<<"    --"<<"d"+itD->first<<" = "<<itD->second<<" hasWindow:"<<hasWindow[itD->first]<<"\n";
             }
 
 
@@ -126,32 +134,91 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
         fs<<"\n ruleDPair: "<<lot->ruleEnergy(RuleType::DistPair)->ruleString()<<"\n";
 
         int isValidDistBin = 1;
-        typename Configuration::const_iterator it2;
-        double dBin,hMax;
-        for(it=c.begin();it!=c.end();++it)
+        if(!lot->ruleEnergy(RuleType::DistPair)->isConditional())
         {
-            it2=it;
-            ++it2;
-            for(;it2!=c.end();++it2)
+            typename Configuration::const_iterator it2;
+            double dBin,hMax;
+            int j = -1;
+            for(it=c.begin();it!=c.end();++it)
             {
-                dBin = c[it].distance2cuboid(c[it2]);
-                hMax = std::max((double)c[it].h(),(double)c[it2].h());
+                ++j;
+                it2=it;
+                ++it2;
+                int k=j;
+                for(;it2!=c.end();++it2)
+                {
+                    ++k;
+                    dBin = c[it].distance2cuboid(c[it2]);
+                    hMax = std::max((double)c[it].h(),(double)c[it2].h());
 
-                if(geometry::do_intersect(c[it],c[it2]))
-                    dBin = -dBin;
+                    if(geometry::do_intersect(c[it],c[it2]))
+                        dBin = -dBin;
 
-                std::map<Var,double> varValue;
-                varValue.insert(std::make_pair(Var("dPair"),dBin));
+                    std::map<Var,double> varValue;
+                    varValue.insert(std::make_pair(Var("dPair"),dBin));
 
-                if(lot->ruleEnergy(RuleType::DistPair)->isValid(varValue,hMax))
-                    continue;
+                    if(lot->ruleEnergy(RuleType::DistPair)->isValid(varValue,hMax))
+                    {
+                        std::cout<<"  --dPair"<<j<<"_"<<k<<"="<<dBin<<"\n";
+                        fs<<"  --dPair"<<j<<"_"<<k<<"="<<dBin<<"\n";
+                        continue;
+                    }
 
-                isValidDistBin = 0;
-                std::cout<<"  --violation: dPair="<<dBin<<"\n";
-                fs<<"  --violation: dPair="<<dBin<<"\n";
 
+                    isValidDistBin = 0;
+                    std::cout<<"  --violation: dPair"<<j<<"_"<<k<<"="<<dBin<<"\n";
+                    fs<<"  --violation: dPair"<<j<<"_"<<k<<"="<<dBin<<"\n";
+
+                }
             }
+
         }
+
+
+        else
+        {
+            typename Configuration::const_iterator it2;
+            double dBin,hMax,hasWindow;
+            int j = -1;
+            for(it=c.begin();it!=c.end();++it)
+            {
+                ++j;
+                it2=it;
+                ++it2;
+                int k=j;
+                for(;it2!=c.end();++it2)
+                {
+                    ++k;
+                    dBin = c[it].distance2cuboid(c[it2],lot->lengthHasWindow(),hasWindow);
+                    hMax = std::max((double)c[it].h(),(double)c[it2].h());
+
+                    if(geometry::do_intersect(c[it],c[it2]))
+                        dBin = -dBin;
+
+                    std::map<Var,double> varValue;
+                    varValue.insert(std::make_pair(Var("hasWindowPair"),hasWindow));
+                    varValue.insert(std::make_pair(Var("dPair"),dBin));
+
+                    if(lot->ruleEnergy(RuleType::DistPair)->isValid(varValue,hMax))
+                    {
+                        std::cout<<"  --dPair"<<j<<"_"<<k<<"="<<dBin<<" hasWindowPair:"<<hasWindow<<"\n";
+                        fs<<"  --dPair"<<j<<"_"<<k<<"="<<dBin<<" hasWindowPair:"<<hasWindow<<"\n";
+                        continue;
+                    }
+
+
+                    isValidDistBin = 0;
+                    std::cout<<"  --violation: dPair"<<j<<"_"<<k<<"="<<dBin<<" hasWindowPair:"<<hasWindow<<"\n";
+                    fs<<"  --violation: dPair"<<j<<"_"<<k<<"="<<dBin<<" hasWindowPair:"<<hasWindow<<"\n";
+
+//                    if(std::abs(hasWindow)<0.001)
+//                        io::display(c[it],c[it2]);
+                }
+            }
+
+
+        }
+
         if(isValidDistBin)
         {
             std::cout<<"  no violation\n";

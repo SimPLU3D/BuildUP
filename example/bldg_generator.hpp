@@ -63,6 +63,10 @@ typedef marked_point_process::uniform_birth_death_kernel<Birth>::type birth_deat
 
 //#include "rjmcmc/mpp/kernel/uniform_kernel.hpp"
 //#include "buildup/rjmcmc/geometry/transform/cuboid_transform_kernel.hpp"
+//typedef marked_point_process::uniform_kernel<object,1,1,cuboid_replacement<Birth> >::type replacement_kernel;
+
+//#include "rjmcmc/mpp/kernel/uniform_kernel.hpp"
+//#include "buildup/rjmcmc/geometry/transform/cuboid_transform_kernel.hpp"
 //typedef marked_point_process::uniform_kernel<object,1,1,cuboid_edge_translation_transform< >  >::type  edge_kernel;
 //typedef marked_point_process::uniform_kernel<object,1,1,cuboid_height_scaling_transform< > >::type  height_kernel;
 
@@ -74,7 +78,7 @@ typedef rjmcmc::metropolis_acceptance acceptance;
 
 typedef rjmcmc::sampler<d_sampler,acceptance
         ,birth_death_kernel
-        //,edge_kernel
+        //,replacement_kernel
         //,height_kernel
         > sampler;
 

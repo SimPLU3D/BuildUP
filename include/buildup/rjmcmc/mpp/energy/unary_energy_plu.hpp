@@ -17,9 +17,9 @@ public:
     template<typename T>
     inline result_type operator()(const T &t) const
     {
-
-        std::map< std::string,double > dist;
-        _lot->dist2borders(t,dist);
+//std::cout<<"unary energy\n";
+        std::map< std::string,double > dist,hasWindow;
+        _lot->dist2borders(t,dist,hasWindow);
 
 
         std::map<Var,double> var_value;
@@ -31,6 +31,9 @@ public:
 
             var_value.insert(std::make_pair(Var("d"+it->first),it->second));
         }
+
+        for(it=hasWindow.begin();it!=hasWindow.end();++it)
+            var_value.insert(std::make_pair(Var("hasWindow"+it->first),it->second));
 
         result_type eFront=0,eSide=0,eBack=0;
 
@@ -54,7 +57,11 @@ public:
         bbegin = _lot->name_borders().begin();
         bend = _lot->name_borders().end();
         for(it=bbegin;it!=bend;++it)
+        {
             var_value.insert(std::make_pair(Var("d"+it->first),x));
+            var_value.insert(std::make_pair(Var("hasWindow"+it->first),1.));
+        }
+
 
         double eFront=0,eSide=0,eBack=0;
         h = _lot->ruleGeom()->hMax();

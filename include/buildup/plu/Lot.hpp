@@ -116,7 +116,7 @@ public:
     }
     inline ~Lot(){
         if(_polygon) _polygon->empty();
-        std::map< RuleType, RuleEnergy*>::iterator it;
+        std::map< RuleType, Rule*>::iterator it;
         for(it=_ruleEnergy.begin(); it!=_ruleEnergy.end(); ++it)
             if( it->second) delete it->second;
     }
@@ -136,9 +136,10 @@ public:
     inline double xMax() const{return _box.MaxX;}
     inline double yMin() const{return _box.MinY;}
     inline double yMax() const{return _box.MaxY;}
-    inline RuleEnergy* ruleEnergy(RuleType t){return _ruleEnergy[t];}
+    inline Rule* ruleEnergy(RuleType t){return _ruleEnergy[t];}
     inline RuleGeom* ruleGeom() const{return _ruleGeom;}
     inline int nBldgMax() const {return _nBldgMax;}
+    inline double lengthHasWindow() const{return _lengthHasWindow;}
     inline double translatedX() const{return _translatedX;}
     inline double translatedY() const{return _translatedY;}
     inline double invTransX() const{return -_translatedX;}
@@ -154,14 +155,15 @@ public:
     inline void insert_borderSeg(int id,BorderSeg& seg){_borderSegs.insert(std::make_pair(id,seg));}
     inline void insert_border(int id,Border& border){_borders.insert(std::make_pair(id,border));}
     inline void add_seg2border(int idSeg, int idBorder){(_borders.find(idBorder)->second).addSeg(&(_borderSegs.find(idSeg)->second));}
-    inline void insert_ruleEnergy(RuleType t, RuleEnergy* r){_ruleEnergy[t] = r;}
+    inline void insert_ruleEnergy(RuleType t, Rule* r){_ruleEnergy[t] = r;}
     inline void set_ruleGeom(RuleGeom* r){_ruleGeom=r;}
     inline void set_nBldgMax(int n){_nBldgMax = n;}
+    inline void set_lengthHasWindow(double a){_lengthHasWindow = a;}
     void set_isRectLike(bool);
     void set_name_borders();
 
     template<typename OBJ>
-    void dist2borders(OBJ& obj,std::map< std::string,double >& result){
+    void dist2borders(OBJ& obj,std::map< std::string,double >& result, std::map< std::string,double>& hasWindow){
         std::map<std::string,Border*>::iterator it;
 
         for(it=_name_borders.begin(); it!=_name_borders.end(); ++it)
@@ -185,8 +187,16 @@ public:
                 }
             }
 
-            double dist = obj.distance2line(_borderSegs.find(idNearest)->second.getGeom());
-            result[it->first]= dist;
+            int idEdge; //the edge facing the border
+            result[it->first]= obj.distance2line(_borderSegs.find(idNearest)->second.getGeom(),idEdge);
+            Segment_2 edge = obj.bottom().segment(idEdge);
+
+            double sqlen =  (edge.target()-edge.source()).squared_length();
+            double a = _lengthHasWindow*_lengthHasWindow;
+            if( sqlen>a || std::abs(sqlen-a)<0.001 )
+               hasWindow[it->first] = 1.;
+            else
+               hasWindow[it->first] = 0.;
         }
     }
 
@@ -204,9 +214,10 @@ private:
     std::map< int,Border> _borders;
     std::map< std::string,Border* > _name_borders;
 
-    std::map< RuleType, RuleEnergy*> _ruleEnergy;
+    std::map< RuleType, Rule*> _ruleEnergy;
     RuleGeom* _ruleGeom;
     int _nBldgMax;
+    double _lengthHasWindow;
 
     int _idRefSeg;
     double _thetaRefSeg;

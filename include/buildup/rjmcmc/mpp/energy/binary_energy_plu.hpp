@@ -5,6 +5,8 @@
 #include "buildup/plu/Lot.hpp"
 #include "buildup/plu/Expression.hpp"
 #include <map>
+#include "buildup/rjmcmc/geometry/Cuboid.hpp"
+#include "buildup/viewer/osg.hpp"
 
 template<typename Value = double>
 class plu_binary_heightDiff: public rjmcmc::energy<Value>
@@ -51,16 +53,44 @@ public:
     template<typename T>
     inline double operator()(const T &t1,const T &t2) const
     {
-        Value d = t1.distance2cuboid(t2);
+        if(!_lot->ruleEnergy(RuleType::DistPair)->isConditional())
+        {
+            //std::cout<<"unconditional binary energy\n";
+            Value d = t1.distance2cuboid(t2);
+            if(d!=d || std::isinf(d))
+            {
+                std::cout<<"binary distance nan or inf\n";
+                return _eRej;
+            }
+            if(geometry::do_intersect(t1,t2))
+                d = -d;
+
+            std::map<Var,double> varValue;
+            varValue.insert(std::make_pair(Var("dPair"),d));
+
+            Value hMax = t1.h()>t2.h()? t1.h():t2.h();
+            return _eRej*(_lot->ruleEnergy(RuleType::DistPair))->energy(varValue,hMax);
+
+        }
+
+       // std::cout<<"conditional binary energy \n";
+
+        double hasWindow;
+        Value d = t1.distance2cuboid(t2, _lot->lengthHasWindow(),hasWindow);
+
         if(d!=d || std::isinf(d))
         {
             std::cout<<"binary distance nan or inf\n";
             return _eRej;
         }
         if(geometry::do_intersect(t1,t2))
-            d = -d;
+             return _eRej;
+            //d = -d;
+
+        //io::display(t1,t2);
 
         std::map<Var,double> varValue;
+        varValue.insert(std::make_pair(Var("hasWindowPair"),hasWindow));
         varValue.insert(std::make_pair(Var("dPair"),d));
 
         Value hMax = t1.h()>t2.h()? t1.h():t2.h();

@@ -18,7 +18,8 @@ struct Constant
 {
     double _c;
     Constant(double c):_c(c) {}
-    inline double operator()(double){return _c;}
+    inline double operator()(double) const {return _c;}
+    inline double operator()() const{return _c;}
 };
 
 struct Add{static double apply(double v1,double v2){return v1+v2;}};

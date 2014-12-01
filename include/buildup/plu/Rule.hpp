@@ -2,6 +2,7 @@
 #define RULE_HPP
 
 #include "Constraint.hpp"
+#include "Condition.hpp"
 #include "Energy.hpp"
 
 /***************Rules configured into geometric parameters***************/
@@ -46,6 +47,7 @@ public:
     inline double wMin() const{return _wMin;}
     inline double wMax() const{return _wMax;}
     inline std::vector< double >& wPeaks(){return _wPeaks;}
+    inline int hasPeaks() const{return _wPeaks.size();}
     inline const char* strH() const{return _strH;}
     inline const char* strL() const{return _strL;}
     inline const char* strW() const{return _strW;}
@@ -57,33 +59,31 @@ enum class RuleType
     DistFront,
     DistSide,
     DistBack,
-    DistCorner,
+   // DistCorner,
     DistPair,
     HeightDiff,
     LCR,//lot coverage ratio
     FAR //floor area ratio
 };
 
+
+typedef std::map<Var,double> VarValue;
 class RuleEnergy
 {
 // support 1 simple or composite constraint
 public:
-    inline RuleEnergy(RuleType t,const char* str, Constraint* cs,double aScale,EnergyFuncType aType,double pScale,EnergyFuncType pType)
-        :_type(t),_string(str),_constraint(cs),_acceptScale(aScale),_acceptType(aType),_penaltyScale(pScale),_penaltyType(pType) {}
+    inline RuleEnergy(Constraint* cs,double aScale,EnergyFuncType aType,double pScale,EnergyFuncType pType)
+        :_constraint(cs),_acceptScale(aScale),_acceptType(aType),_penaltyScale(pScale),_penaltyType(pType) {}
     inline virtual ~RuleEnergy(){if(_constraint!=NULL) delete _constraint;}
 
-    inline RuleType ruleType() const {return _type;}
-    inline const char* ruleString() const {return _string;}
 
     //varValue: values of constrained variables (leftvalue)
     //xExpr: value of the independent variable (only support 0 or 1) in constraint expression (rightvalue)
-    typedef std::map<Var,double> VarValue;
-    virtual double energy(VarValue varValue,double xExpr=0) = 0;
-    virtual bool isValid(VarValue varValue,double xExpr=0) =0;
+
+    virtual double energy(VarValue& varValue,double xExpr=0) = 0;
+    virtual bool isValid(VarValue& varValue,double xExpr=0) =0;
 
 protected:
-    RuleType _type;
-    const char* _string;
     Constraint* _constraint;
     double _acceptScale; //acceptance energy function scale
     EnergyFuncType _acceptType; // acceptance energy function type (eg. zero, squared for optimization)
@@ -98,10 +98,10 @@ class RuleDynamic : public RuleEnergy
 //there is one independent variable in rightvalue expression of the constraint
 //energy function cannot be created when creating the rule
 public:
-    inline RuleDynamic(RuleType t,const char* str,Constraint* cs,double aScale,EnergyFuncType aType,double pScale,EnergyFuncType pType)
-        :RuleEnergy(t,str,cs,aScale,aType,pScale,pType) {}
+    inline RuleDynamic(Constraint* cs,double aScale,EnergyFuncType aType,double pScale,EnergyFuncType pType)
+        :RuleEnergy(cs,aScale,aType,pScale,pType) {}
 
-    inline double energy(VarValue varValue, double xExpr)
+    inline double energy(VarValue& varValue, double xExpr)
     {
         EnergyPLU* p = _constraint->toEnergy(xExpr,_acceptScale,_acceptType,_penaltyScale,_penaltyType);
         double out = (*p)(varValue);
@@ -109,7 +109,7 @@ public:
         return out;
     }
 
-    inline bool isValid(VarValue varValue,double xExpr)
+    inline bool isValid(VarValue& varValue,double xExpr)
     {
         EnergyPLU* p = _constraint->toEnergy(xExpr,_acceptScale,_acceptType,_penaltyScale,_penaltyType);
         bool out = p->isValid(varValue);
@@ -126,13 +126,74 @@ class RuleStatic : public RuleEnergy
     EnergyPLU* _energy;
 
 public:
-    inline RuleStatic(RuleType t,const char* str,Constraint* cs,double aScale,EnergyFuncType aType,double pScale,EnergyFuncType pType)
-        :RuleEnergy(t,str,cs,aScale,aType,pScale,pType)
+    inline RuleStatic(Constraint* cs,double aScale,EnergyFuncType aType,double pScale,EnergyFuncType pType)
+        :RuleEnergy(cs,aScale,aType,pScale,pType)
     {_energy = _constraint->toEnergy(0,_acceptScale,_acceptType,_penaltyScale,_penaltyType);}
 
     inline ~RuleStatic(){if (_energy!=NULL) delete _energy;}
 
-    inline double energy(VarValue varValue,double xExpr=0){return (*_energy)(varValue);}
-    inline bool isValid(VarValue varValue,double xExpr=0){return _energy->isValid(varValue);}
+    inline double energy(VarValue& varValue,double xExpr=0){return (*_energy)(varValue);}
+    inline bool isValid(VarValue& varValue,double xExpr=0){return _energy->isValid(varValue);}
 };
+
+
+
+
+class Rule
+{
+    RuleType _type;
+    const char* _string;
+    std::vector<Condition*> _conditions;
+    std::vector<RuleEnergy*> _rules;
+
+public:
+    inline Rule(RuleType t,const char* str):_type(t),_string(str){}
+    inline ~Rule(){
+        for(size_t i=0;i<_conditions.size();++i)
+            if(_conditions[i]) delete _conditions[i];
+        for(size_t i=0;i<_rules.size();++i)
+            if(_rules[i]) delete _rules[i];}
+
+    inline void addConditionDirectly(Condition* cond){_conditions.push_back(cond);}
+    inline void addRuleDirectly(RuleEnergy* rule){_rules.push_back(rule);}
+
+    inline RuleType ruleType() const {return _type;}
+    inline const char* ruleString() const {return _string;}
+    inline int isConditional() const {return _conditions.size();}
+
+    inline double energy(VarValue varValue,double xExpr=0)
+    {
+        if(_conditions.empty())//only one rule
+        {
+            //std::cout<<"ruletype "<<(int)_type<<":no cond\n";
+            return (_rules[0])->energy(varValue,xExpr);
+        }
+        for(size_t i=0;i<_conditions.size();++i)
+        {
+
+            if(_conditions[i]->predicate(varValue))
+            {
+             //   std::cout<<"ruletype "<<(int)_type<<":cond "<<i<<" true\n";
+            return (_rules[i])->energy(varValue,xExpr);
+            }
+        }
+
+        std::cerr<<"error no matched condition "<<_string<<"\n";
+        exit(1);
+    }
+
+    inline bool isValid(VarValue& varValue,double xExpr=0)
+    {
+        if(_conditions.empty())//only one rule
+            return (_rules[0])->isValid(varValue,xExpr);
+        for(size_t i=0;i<_conditions.size();++i)
+            if(_conditions[i]->predicate(varValue))
+                return (_rules[i])->isValid(varValue,xExpr);
+        std::cerr<<"error no matched condition"<<"\n";
+        exit(1);
+
+    }
+
+};
+
 #endif // RULE_HPP

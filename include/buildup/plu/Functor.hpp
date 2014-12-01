@@ -17,7 +17,7 @@ using SampleType = std::array<double,N>;
 template<unsigned int N>
 using SampleContainer = std::vector< SampleType<N> >;
 
-//static discrete sample sapce
+//static discrete uniform sample sapce
 struct Center_Functor
 {
     enum {dimension=2};
@@ -77,6 +77,20 @@ struct Width_Functor
 
     inline void operator()(sample_container & c,std::vector<double>& weights) const
     {
+        if(!m_lot->ruleGeom()->hasPeaks())
+        {
+           // std::cout<<"uniform width functor\n";
+            double wMin = m_lot->ruleGeom()->wMin();
+            double wMax = m_lot->ruleGeom()->wMax();
+            int n= 1+(int)(std::floor(wMax-wMin)/m_rate);
+            for(int i=0;i<n;++i)
+            {
+                c.push_back(sample_type {wMin+m_rate*i});
+                weights.push_back(1.);
+            }
+            return;
+        }
+
         std::vector<double>& wPeaks = m_lot->ruleGeom()->wPeaks();
         std::vector<Gaussian> gaussians;
         for(size_t i=0;i<wPeaks.size();++i)

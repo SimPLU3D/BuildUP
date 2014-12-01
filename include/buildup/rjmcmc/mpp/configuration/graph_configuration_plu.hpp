@@ -115,6 +115,7 @@ public:
         bci bend = modif.birth().end();
         dci dbeg = modif.death().begin();
         dci dend = modif.death().end();
+
         for(bci it=bbeg; it!=bend; ++it)
         {
             m_delta_dBorder += rjmcmc::apply_visitor(m_unary_dBorder,*it);
@@ -136,6 +137,7 @@ public:
 
         }
 
+        int flagIntersect = 0;
         for(dci it=dbeg; it!=dend; ++it)
         {
             iterator v = *it;
@@ -148,6 +150,7 @@ public:
                 {
                     m_delta_dPair -= rjmcmc::apply_visitor(m_binary_dPair, value(v), value(it2) );
                     m_delta_hDiff -= rjmcmc::apply_visitor(m_binary_hDiff,value(v),value(it2));
+                    flagIntersect |= geometry::do_intersect(value(v),value(it2));
                 }
             it2 = v;
             ++it2;
@@ -155,6 +158,7 @@ public:
             {
                 m_delta_dPair -= rjmcmc::apply_visitor(m_binary_dPair, value(v), value(it2) );
                 m_delta_hDiff -= rjmcmc::apply_visitor(m_binary_hDiff,value(v),value(it2));
+                flagIntersect |= geometry::do_intersect(value(v),value(it2));
             }
 
         }
@@ -167,6 +171,8 @@ public:
         {
             if(std::abs(m_delta_dBorder)>m_death_dBorder*n)
                 return m_delta_dBorder;
+//            if(flagIntersect)
+//                return m_delta_dPair;
         }
 
         return m_delta_dBorder+m_delta_dPair+m_delta_hDiff+m_delta_lcr+m_delta_far;
