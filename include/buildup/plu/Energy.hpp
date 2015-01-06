@@ -52,10 +52,8 @@ class EnergyPLU
 public:
     EnergyPLU() {}
     virtual ~EnergyPLU() {}
-
-    typedef std::map<Var,double> VarMap;
-    virtual double operator()(VarMap&) = 0 ;
-    virtual bool isValid(VarMap&) = 0;
+    virtual double operator()(VarValue&) = 0 ;
+    virtual bool isValid(VarValue&) = 0;
 };
 
 class EnergyComposite: public EnergyPLU
@@ -68,8 +66,8 @@ public:
     EnergyComposite(EnergyPLU* lc,EnergyPLU* rc,Relation r);
     ~EnergyComposite();
 
-    double operator()(VarMap&);
-    bool isValid(VarMap&);
+    double operator()(VarValue&);
+    bool isValid(VarValue&);
 };
 
 
@@ -90,8 +88,8 @@ public:
     EnergyPiecewise(Var,Intervals,double,EnergyFuncType,double,EnergyFuncType);
     ~EnergyPiecewise();
 
-    double operator() (VarMap&);
-    bool isValid(VarMap&);
+    double operator() (VarValue&);
+    bool isValid(VarValue&);
 };
 
 

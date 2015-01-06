@@ -24,10 +24,23 @@ namespace io
 
         poDS = poDriver->CreateDataSource( file, NULL );
         poLayer =poDS->CreateLayer( "building", NULL, wkbPolygon, NULL );
-        OGRFieldDefn idField("ID",OFTInteger),lotField("lotID",OFTInteger),hField("height", OFTReal);
+        OGRFieldDefn idField("ID",OFTInteger)
+        ,lotField("lotID",OFTInteger)
+        ,hField("height", OFTReal)
+        ,fX("centerX",OFTReal)
+        ,fY("centerY",OFTReal)
+        ,fW("width",OFTReal)
+        ,fL("length",OFTReal)
+        ,fT("theta",OFTReal);
         poLayer->CreateField( &idField );
         poLayer->CreateField( &lotField );
         poLayer->CreateField( &hField );
+        poLayer->CreateField( &fX );
+        poLayer->CreateField( &fY );
+        poLayer->CreateField( &fW );
+        poLayer->CreateField( &fL );
+        poLayer->CreateField( &fT );
+
 
         int id = -1;
 
@@ -49,6 +62,11 @@ namespace io
             poFeature->SetField("ID",++id);
             poFeature->SetField("lotID",idLot);
             poFeature->SetField("height",config[it].h());
+            poFeature->SetField("centerX",config[it].centerX());
+            poFeature->SetField("centerY",config[it].centerY());
+            poFeature->SetField("width",config[it].width());
+            poFeature->SetField("length",config[it].length());
+            poFeature->SetField("theta",config[it].theta());
             poFeature->SetGeometry(&ply);
 
             poLayer->CreateFeature(poFeature);

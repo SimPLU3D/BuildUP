@@ -66,6 +66,8 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
         for(itD=hasWindow.begin();itD!=hasWindow.end();++itD)
             var_value.insert(std::make_pair(Var("hasWindow"+itD->first),itD->second));
 
+        var_value.insert(std::make_pair(Var("h"),c[it].h()));
+
         double eFront=0,eSide=0,eBack=0;
         if(lot->hasRule(RuleType::DistFront))
         {
@@ -80,7 +82,7 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
                 fs<<"    --"<<"d"+itD->first<<" = "<<itD->second<<" hasWindow:"<<hasWindow[itD->first]<<"\n";
             }
 
-            eFront = p.template get<double>("wdborder")*p.template get<double>("erej")*(lot->ruleEnergy(RuleType::DistFront))->energy(var_value,c[it].h());
+            eFront = p.template get<double>("wdborder")*p.template get<double>("erej")*(lot->ruleEnergy(RuleType::DistFront))->energy(var_value);
             std::cout<<"  eFront = "<<eFront<< "\n";
             fs<<"  eFront = "<<eFront<<"\n";
         }
@@ -100,7 +102,7 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
             }
 
 
-            eSide = p.template get<double>("wdborder")*p.template get<double>("erej")*(lot->ruleEnergy(RuleType::DistSide))->energy(var_value,c[it].h());
+            eSide = p.template get<double>("wdborder")*p.template get<double>("erej")*(lot->ruleEnergy(RuleType::DistSide))->energy(var_value);
             std::cout<<"  eSide = "<<eSide<<"\n";
             fs<<"  eSide = "<<eSide<<"\n";
 
@@ -120,7 +122,7 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
             }
 
 
-            eBack = p.template get<double>("wdborder")*p.template get<double>("erej")*(lot->ruleEnergy(RuleType::DistBack))->energy(var_value,c[it].h());
+            eBack = p.template get<double>("wdborder")*p.template get<double>("erej")*(lot->ruleEnergy(RuleType::DistBack))->energy(var_value);
             std::cout<<"  eBack = "<<eBack<<"\n";
             fs<<"  eBack = "<<eBack<<"\n";
 
@@ -137,7 +139,7 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
         if(!lot->ruleEnergy(RuleType::DistPair)->isConditional())
         {
             typename Configuration::const_iterator it2;
-            double dBin,hMax;
+            double dBin,hHigh;
             int j = -1;
             for(it=c.begin();it!=c.end();++it)
             {
@@ -149,15 +151,16 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
                 {
                     ++k;
                     dBin = c[it].distance2cuboid(c[it2]);
-                    hMax = std::max((double)c[it].h(),(double)c[it2].h());
+                    hHigh = std::max((double)c[it].h(),(double)c[it2].h());
 
                     if(geometry::do_intersect(c[it],c[it2]))
                         dBin = -dBin;
 
                     std::map<Var,double> varValue;
                     varValue.insert(std::make_pair(Var("dPair"),dBin));
+                    varValue.insert(std::make_pair(Var("hHigh"),hHigh));
 
-                    if(lot->ruleEnergy(RuleType::DistPair)->isValid(varValue,hMax))
+                    if(lot->ruleEnergy(RuleType::DistPair)->isValid(varValue))
                     {
                         std::cout<<"  --dPair"<<j<<"_"<<k<<"="<<dBin<<"\n";
                         fs<<"  --dPair"<<j<<"_"<<k<<"="<<dBin<<"\n";
@@ -178,7 +181,8 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
         else
         {
             typename Configuration::const_iterator it2;
-            double dBin,hMax,hasWindow;
+            double dBin,hHigh,hLow;
+            int hasWindowPair,hasWindowHigh,hasWindowLow;
             int j = -1;
             for(it=c.begin();it!=c.end();++it)
             {
@@ -189,27 +193,32 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
                 for(;it2!=c.end();++it2)
                 {
                     ++k;
-                    dBin = c[it].distance2cuboid(c[it2],lot->lengthHasWindow(),hasWindow);
-                    hMax = std::max((double)c[it].h(),(double)c[it2].h());
+                    dBin = c[it].distance2cuboid(c[it2],lot->lengthHasWindow(),hasWindowPair,hasWindowHigh,hasWindowLow);
+                    hHigh = std::max((double)c[it].h(),(double)c[it2].h());
+                    hLow = std::min((double)c[it].h(),(double)c[it2].h());
 
                     if(geometry::do_intersect(c[it],c[it2]))
                         dBin = -dBin;
 
                     std::map<Var,double> varValue;
-                    varValue.insert(std::make_pair(Var("hasWindowPair"),hasWindow));
+                    varValue.insert(std::make_pair(Var("hasWindowPair"),hasWindowPair));
+                    varValue.insert(std::make_pair(Var("hasWindowHigh"),hasWindowHigh));
+                    varValue.insert(std::make_pair(Var("hasWindowLow"),hasWindowLow));
                     varValue.insert(std::make_pair(Var("dPair"),dBin));
+                    varValue.insert(std::make_pair(Var("hHigh"),hHigh));
+                    varValue.insert(std::make_pair(Var("hLow"),hLow));
 
-                    if(lot->ruleEnergy(RuleType::DistPair)->isValid(varValue,hMax))
+                    if(lot->ruleEnergy(RuleType::DistPair)->isValid(varValue))
                     {
-                        std::cout<<"  --dPair"<<j<<"_"<<k<<"="<<dBin<<" hasWindowPair:"<<hasWindow<<"\n";
-                        fs<<"  --dPair"<<j<<"_"<<k<<"="<<dBin<<" hasWindowPair:"<<hasWindow<<"\n";
+                        std::cout<<"  --dPair"<<j<<"_"<<k<<"="<<dBin<<" hasWindowHigh:"<<hasWindowHigh<<" hasWindowLow:"<<hasWindowLow<<"\n";
+                        fs<<"  --dPair"<<j<<"_"<<k<<"="<<dBin<<" hasWindowHigh:"<<hasWindowHigh<<" hasWindowLow:"<<hasWindowLow<<"\n";
                         continue;
                     }
 
 
                     isValidDistBin = 0;
-                    std::cout<<"  --violation: dPair"<<j<<"_"<<k<<"="<<dBin<<" hasWindowPair:"<<hasWindow<<"\n";
-                    fs<<"  --violation: dPair"<<j<<"_"<<k<<"="<<dBin<<" hasWindowPair:"<<hasWindow<<"\n";
+                    std::cout<<"  --violation: dPair"<<j<<"_"<<k<<"="<<dBin<<" hasWindowHigh:"<<hasWindowHigh<<" hasWindowLow:"<<hasWindowLow<<"\n";
+                    fs<<"  --violation: dPair"<<j<<"_"<<k<<"="<<dBin<<" hasWindowHigh:"<<hasWindowHigh<<" hasWindowLow:"<<hasWindowLow<<"\n";
 
 //                    if(std::abs(hasWindow)<0.001)
 //                        io::display(c[it],c[it2]);
@@ -234,7 +243,7 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
 
         int isValidHDiff = 1;
         typename Configuration::const_iterator it2;
-        double dBin,hMax,hDiff;
+        double dBin,hDiff,hHigh;
         for(it=c.begin();it!=c.end();++it)
         {
             it2=it;
@@ -242,19 +251,20 @@ void properties(Param& p,const Configuration& c, Lot* lot,std::ofstream& fs,doub
             for(;it2!=c.end();++it2)
             {
                 dBin = c[it].distance2cuboid(c[it2]);
-                hMax = std::max((double)c[it].h(),(double)c[it2].h());
+                hHigh = std::max((double)c[it].h(),(double)c[it2].h());
 
                 if(geometry::do_intersect(c[it],c[it2]))
                     dBin = -dBin;
 
-                if(dBin>=hMax)
+                if(dBin>=hHigh)
                     continue;
 
                 hDiff = std::abs(c[it].h()-c[it2].h());
                 std::map<Var,double> varValue;
                 varValue.insert(std::make_pair(Var("hDiff"),hDiff));
 
-                if(lot->ruleEnergy(RuleType::HeightDiff)->isValid(varValue,hMax))
+
+                if(lot->ruleEnergy(RuleType::HeightDiff)->isValid(varValue))
                     continue;
 
                 isValidHDiff = 0;

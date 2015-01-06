@@ -80,8 +80,8 @@ public:
     //varValue: values of constrained variables (leftvalue)
     //xExpr: value of the independent variable (only support 0 or 1) in constraint expression (rightvalue)
 
-    virtual double energy(VarValue& varValue,double xExpr=0) = 0;
-    virtual bool isValid(VarValue& varValue,double xExpr=0) =0;
+    virtual double energy(VarValue& v) = 0;
+    virtual bool isValid(VarValue& v) =0;
 
 protected:
     Constraint* _constraint;
@@ -101,18 +101,18 @@ public:
     inline RuleDynamic(Constraint* cs,double aScale,EnergyFuncType aType,double pScale,EnergyFuncType pType)
         :RuleEnergy(cs,aScale,aType,pScale,pType) {}
 
-    inline double energy(VarValue& varValue, double xExpr)
+    inline double energy(VarValue& v)
     {
-        EnergyPLU* p = _constraint->toEnergy(xExpr,_acceptScale,_acceptType,_penaltyScale,_penaltyType);
-        double out = (*p)(varValue);
+        EnergyPLU* p = _constraint->toEnergy(v,_acceptScale,_acceptType,_penaltyScale,_penaltyType);
+        double out = (*p)(v);
         delete p;
         return out;
     }
 
-    inline bool isValid(VarValue& varValue,double xExpr)
+    inline bool isValid(VarValue& v)
     {
-        EnergyPLU* p = _constraint->toEnergy(xExpr,_acceptScale,_acceptType,_penaltyScale,_penaltyType);
-        bool out = p->isValid(varValue);
+        EnergyPLU* p = _constraint->toEnergy(v,_acceptScale,_acceptType,_penaltyScale,_penaltyType);
+        bool out = p->isValid(v);
         delete p;
         return out;
     }
@@ -128,12 +128,13 @@ class RuleStatic : public RuleEnergy
 public:
     inline RuleStatic(Constraint* cs,double aScale,EnergyFuncType aType,double pScale,EnergyFuncType pType)
         :RuleEnergy(cs,aScale,aType,pScale,pType)
-    {_energy = _constraint->toEnergy(0,_acceptScale,_acceptType,_penaltyScale,_penaltyType);}
+    {   VarValue v;
+        _energy = _constraint->toEnergy(v,_acceptScale,_acceptType,_penaltyScale,_penaltyType);}
 
     inline ~RuleStatic(){if (_energy!=NULL) delete _energy;}
 
-    inline double energy(VarValue& varValue,double xExpr=0){return (*_energy)(varValue);}
-    inline bool isValid(VarValue& varValue,double xExpr=0){return _energy->isValid(varValue);}
+    inline double energy(VarValue& v){return (*_energy)(v);}
+    inline bool isValid(VarValue& v){return _energy->isValid(v);}
 };
 
 
@@ -161,20 +162,20 @@ public:
     inline const char* ruleString() const {return _string;}
     inline int isConditional() const {return _conditions.size();}
 
-    inline double energy(VarValue varValue,double xExpr=0)
+    inline double energy(VarValue& v)
     {
         if(_conditions.empty())//only one rule
         {
             //std::cout<<"ruletype "<<(int)_type<<":no cond\n";
-            return (_rules[0])->energy(varValue,xExpr);
+            return (_rules[0])->energy(v);
         }
         for(size_t i=0;i<_conditions.size();++i)
         {
 
-            if(_conditions[i]->predicate(varValue))
+            if(_conditions[i]->predicate(v))
             {
              //   std::cout<<"ruletype "<<(int)_type<<":cond "<<i<<" true\n";
-            return (_rules[i])->energy(varValue,xExpr);
+            return (_rules[i])->energy(v);
             }
         }
 
@@ -182,13 +183,13 @@ public:
         exit(1);
     }
 
-    inline bool isValid(VarValue& varValue,double xExpr=0)
+    inline bool isValid(VarValue& v)
     {
         if(_conditions.empty())//only one rule
-            return (_rules[0])->isValid(varValue,xExpr);
+            return (_rules[0])->isValid(v);
         for(size_t i=0;i<_conditions.size();++i)
-            if(_conditions[i]->predicate(varValue))
-                return (_rules[i])->isValid(varValue,xExpr);
+            if(_conditions[i]->predicate(v))
+                return (_rules[i])->isValid(v);
         std::cerr<<"error no matched condition"<<"\n";
         exit(1);
 

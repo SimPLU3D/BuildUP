@@ -221,15 +221,20 @@ struct Height_Functor
 
     inline void operator()(sample_container& c) const {return ;}
 
+    inline int geq(double a,double b,double epsilon = 0.001) const
+    {
+        return (a>b || std::abs(a-b)<epsilon);
+    }
+
     template<typename Iterator>
     inline void operator()(Iterator it,sample_container& c) const
     {
         double w = *it;
         double h;
         if(w<5) h = m_hFloor;
-        else if(w>=5 && w<7) h = std::min(m_hFloor*2,m_hMax);
-        else if(w>=7 && w<8) h = std::min(m_hFloor*3,m_hMax);
-        else if(w>=8 && w<15) h = std::min(m_hFloor*6,m_hMax);
+        else if(geq(w,5) && w<7) h = std::min(m_hFloor*2,m_hMax);
+        else if(geq(w,7) && w<8) h = std::min(m_hFloor*3,m_hMax);
+        else if(geq(w,8) && w<10) h = std::min(m_hFloor*6,m_hMax);
         else h= m_hMax;
         c.push_back( sample_type {h});
     }

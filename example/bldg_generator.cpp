@@ -8,8 +8,7 @@ typedef parameters< parameter > Param;
 #include <chrono>
 #include "properties.hpp"
 #include "buildup/io/file.hpp"
-//    template<typename birth_type>
-//    int cuboid_replacement<birth_type>::m_num =0;
+
 configuration* bldg_generator(Param& p, Lot* lot,std::ofstream& ofs_energy,std::ofstream& ofs_geom,int& iter)
 {
     double eRej = p.get<double>("erej");
@@ -43,27 +42,12 @@ configuration* bldg_generator(Param& p, Lot* lot,std::ofstream& ofs_energy,std::
     VariateAll vAll(vC,vW,vL,vT,vH,predicate);
     Birth birth(vAll);
 
-//    double var[6];
-//    double pdf=0.;
-//    while(pdf==0)
-//    {
-//        pdf = vAll(rjmcmc::random(),var);
-//    }
-//
-//    typename configuration::modification modif;
-//    object_from_coordinates<object> creator;
-//    modif.birth().push_back(creator(var));
-//    modif.apply(*conf);
-
-
     distribution cs(lot->nBldgMax());
     d_sampler ds( cs, birth );
 
 
     sampler samp( ds, acceptance()
                 , marked_point_process::make_uniform_birth_death_kernel(birth, 1., p.get<double>("pbirth"))
-                //, marked_point_process::make_uniform_kernel<object,1,1>(cuboid_replacement<Birth>(birth),1)
-               // , marked_point_process::make_uniform_kernel<object,1,1>(cuboid_height_scaling_transform<>(lot->ruleGeom()->hMin(),lot->ruleGeom()->hMax(),lot->ruleGeom()->hFloor()),0.2)
                 );
 
 
@@ -75,9 +59,9 @@ configuration* bldg_generator(Param& p, Lot* lot,std::ofstream& ofs_energy,std::
     ,simulated_annealing::max_num_end_test> endtest(end1,end2);
 
 
-//    simulated_annealing::energy_visitor eVisitor(p.get<int>("nb_save_energy"),ofs_energy);
-//    simulated_annealing::geom_visitor gVisitor(p.get<int>("nb_save_geom"),ofs_geom,lot->invTransX(),lot->invTransY());
-//    simulated_annealing::composite_visitor< simulated_annealing::energy_visitor,simulated_annealing::geom_visitor> visitor(eVisitor,gVisitor);
+    //simulated_annealing::energy_visitor eVisitor(p.get<int>("nb_save_energy"),ofs_energy);
+    //simulated_annealing::geom_visitor gVisitor(p.get<int>("nb_save_geom"),ofs_geom,lot->invTransX(),lot->invTransY());
+    //simulated_annealing::composite_visitor< simulated_annealing::energy_visitor,simulated_annealing::geom_visitor> visitor(eVisitor,gVisitor);
 
     rjmcmc::mt19937_generator& engine = rjmcmc::random();
     /*< This is the way to launch the optimization process. Here, the magic happen... >*/
@@ -105,9 +89,7 @@ void bldg_generator_info(Lot* lot,std::string& outfile
     std::cout<<" iteration "<<iter<<" \n";
     ofs_stat<<" iteration "<<iter<<" \n";
 
-//    std::cout<<cuboid_replacement<Birth>::m_num<<"\n";
     properties(param,*conf,lot,ofs_stat,lcr,far,e);
-    //io::config2bldgs(*conf,bldgs,lot->id());
     io::save_config2shp(*conf,outfile.c_str(),lot->id(),lot->invTransX(),lot->invTransY());
     delete conf;
 }

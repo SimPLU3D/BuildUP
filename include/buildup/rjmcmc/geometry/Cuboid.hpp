@@ -6,7 +6,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
-//#include "buildup/viewer/osg.hpp"
+#include "buildup/viewer/osg.hpp"
 #ifndef PI
 #define PI 3.14159265
 #endif
@@ -15,7 +15,6 @@ enum class AdjacentType
 {
     edge2edge,
     edge2face,
-    face2edge,
     face2face
 };
 
@@ -68,7 +67,8 @@ public:
 
     }
 
-    FT distance2cuboid(const Cuboid<T> & o, double lengthHasWindow, double& hasWindow) const
+    FT distance2cuboid(const Cuboid<T> & o, double lengthHasWindow
+    , int& hasWindowPair, int& hasWindowHigh, int& hasWindowLow) const
     {
         std::vector<FT> sqd1,sqd2;
         std::map<int,int> pos1,pos2;
@@ -84,7 +84,8 @@ public:
                 sqd2.push_back( squared_distance_point2seg(o._rect.point(i),_rect.segment(j),pos2[i*n+j]) );
             }
 
-
+        // min1: min squared distance from point to edge (this to other)
+        // min2: min squared distance from point to edge (other to this)
         FT min1 = sqd1.front(), min2 = sqd2.front();
         int idMin1 = 0, idMin2 = 0;
         for( int k = 1;k<n*n; ++k)
@@ -101,21 +102,19 @@ public:
             }
         }
 
-        FT sqd_min;
-        int id1,id2,pos;
-
-        if(min1<=min2)
-        {
-            sqd_min = min1;
-            id1 = idMin1/n;
-            id2 = idMin1%n;
-            pos = pos1[idMin1];
-        }
-        else
+        FT sqd_min = min1;
+        const Cuboid<T>* b1=this;
+        const Cuboid<T>* b2=&o;
+        int id1 = idMin1/n;
+        int id2 = idMin1%n;
+        int pos = pos1[idMin1];
+        if(min1>min2)
         {
             sqd_min = min2;
-            id2 = idMin2/n;
-            id1 = idMin2%n;
+            b1 = &o;
+            b2 = this;
+            id1 = idMin2/n;
+            id2 = idMin2%n;
             pos = pos2[idMin2];
         }
 
@@ -126,25 +125,30 @@ public:
         else
         {   //perpendicular foot is on the surface of the opposite building
             //need to check angle between the two buildings
-            double angle = std::abs ( 90 -  (180/PI) * std::abs(_theta - o.theta())  );
-            if(angle<=20 || angle>=70)
-                type = AdjacentType::face2face;
-            else if (min1<=min2)
+            double angle = (180/PI) * angle_radian(b1->_rect.segment(id1),b2->_rect.segment(id2));
+            if(angle>20 && angle<70)
                 type = AdjacentType::edge2face;
+
             else
-                type = AdjacentType::face2edge;
+            {
+                type = AdjacentType::face2face;
+                if(geq(angle,70))
+                    id1 = (id1-1+4)%4;
+            }
+
         }
 
-//        if(type!=AdjacentType::face2face)
-//        {
-//            std::cout<<"not face2face: "<<(int)type<<"\n";
-//            io::display((*this),o);
-//        }
-
-
-
-        hasWindow = isFacingWithWindow(o,type,id1,id2,lengthHasWindow);
-//        std::cout<<id1<<", "<<id2<<", "<<"type:"<<(int)type<<",hasWindow:"<<hasWindow<<"\n";
+        isFacingWithWindow(*b1,*b2,type,id1,id2,lengthHasWindow,hasWindowPair,hasWindowHigh,hasWindowLow);
+//        std::cout<<"dMin1-2:"<<min1<<"idMin1-2:"<<idMin1/n<<","<<idMin1%n <<"\n";
+//        std::cout<<"dMin2-1:"<<min2<<"idMin2-1:"<<idMin2/n<<","<<idMin2%n <<"\n";
+//        std::cout<<id1<<", "<<id2<<", "<<"type:"<<(int)type<<",hasWindowHigh:"<<hasWindowHigh<<",hasWindowLow:"<<hasWindowLow<<"\n";
+//
+//        if(geq(_h,o._h))
+//            std::cout<<"this higher than other\n";
+//        else
+//            std::cout<<"this lower than other\n";
+//
+//        io::display(*b1,*b2);
 
         return std::sqrt(sqd_min);
     }
@@ -184,7 +188,7 @@ public:
         if(angle_radian(edge,s)<= PI*0.25)
             idEdge = idPoint;
         else
-            idEdge = idPoint-1;
+            idEdge = (idPoint-1+4)%4;
 
 
         return dMin;
@@ -198,6 +202,8 @@ public:
     inline const FT   length()  const{return _length;}
     inline const FT   theta()   const{return _theta;}
     inline const FT   h()       const{return _h;}
+    inline const FT   centerX() const{return _rect.center().x();}
+    inline const FT   centerY() const{return _rect.center().y();}
     inline const FT   area()    const{return _width*_length;}
     inline const FT   volume()  const{return _width*_length*_h;}
 
@@ -287,17 +293,19 @@ private:
         return (a>b || std::abs(a-b)<epsilon);
     }
 
-    inline FT isFacingWithWindow(const Cuboid<T> & o,AdjacentType type, int id1, int id2,double lengthHasWindow) const
+    inline void isFacingWithWindow(const Cuboid<T>& b1, const Cuboid<T>& b2
+    ,AdjacentType type, int id1, int id2,double lengthHasWindow
+    ,int& hasWindowPair,int& hasWindowHigh, int& hasWindowLow) const
     {
         //determine if haswindow on the opposing facades
 
-        Point_2 p1 = _rect.point(id1);
-        Point_2 p1a = _rect.point(id1-1);
-        Point_2 p1b = _rect.point(id1+1);
+        Point_2 p1 = b1._rect.point(id1);
+        Point_2 p1a = b1._rect.point(id1-1);
+        Point_2 p1b = b1._rect.point(id1+1);
 
-        Point_2 p2 = _rect.point(id2);
-        Point_2 p2a = o._rect.point(id2-1);
-        Point_2 p2b = o._rect.point(id2+1);
+        Point_2 p2 = b2._rect.point(id2);
+        Point_2 p2a = b2._rect.point(id2-1);
+        Point_2 p2b = b2._rect.point(id2+1);
 
         double sqd11 = (p1-p1a).squared_length();
         double sqd12 = (p1-p1b).squared_length();
@@ -305,29 +313,50 @@ private:
         double sqd22 = (p2-p2b).squared_length();
 
         double a = lengthHasWindow * lengthHasWindow;
-        FT hasWindow = 0.;
+        int hasWindow1 =0 , hasWindow2 = 0;
         switch (type){
             case AdjacentType::edge2edge:
-                if( (geq(sqd11,a)||geq(sqd12,a)) && (geq(sqd21,a)||geq(sqd22,a)) )
-                    hasWindow = 1.;
+                if( geq(sqd11,a)||geq(sqd12,a) )
+                    hasWindow1 = 1;
+                if( geq(sqd21,a)||geq(sqd22,a) )
+                    hasWindow2 = 1;
                 break;
+
             case  AdjacentType::edge2face:
-                if( (geq(sqd11,a)||geq(sqd12,a)) && geq(sqd22,a))
-                    hasWindow = 1.;
+                if( geq(sqd11,a)||geq(sqd12,a) )
+                    hasWindow1 = 1;
+                if( geq(sqd22,a) )
+                    hasWindow2 = 1;
                 break;
-            case AdjacentType::face2edge:
-                if( geq(sqd12,a) && (geq(sqd21,a)||geq(sqd22,a)) )
-                    hasWindow = 1.;
-                break;
+
             case AdjacentType::face2face:
-                if( geq(sqd12,a) && geq(sqd22,a) )
-                    hasWindow = 1.;
+                if( geq(sqd12,a) )
+                    hasWindow1 = 1;
+                if( geq(sqd22,a) )
+                    hasWindow2 = 1;
                 break;
+
             default:
                 break;
         }
-        return hasWindow;
 
+
+
+        if( hasWindow1 && hasWindow2 )
+            hasWindowPair = 1;
+        else
+            hasWindowPair = 0;
+
+        if(geq(b1._h,b2._h))
+        {
+            hasWindowHigh = hasWindow1;
+            hasWindowLow = hasWindow2;
+        }
+        else
+        {
+            hasWindowHigh = hasWindow2;
+            hasWindowLow = hasWindow1;
+        }
     }
 }; // class template Cuboid
 

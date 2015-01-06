@@ -35,16 +35,17 @@ public:
         for(it=hasWindow.begin();it!=hasWindow.end();++it)
             var_value.insert(std::make_pair(Var("hasWindow"+it->first),it->second));
 
+        var_value.insert(std::make_pair(Var("h"),t.h()));
         result_type eFront=0,eSide=0,eBack=0;
 
         if(_lot->hasRule(RuleType::DistFront))
-            eFront = (_lot->ruleEnergy(RuleType::DistFront))->energy(var_value,t.h());
+            eFront = (_lot->ruleEnergy(RuleType::DistFront))->energy(var_value);
 
         if(_lot->hasRule(RuleType::DistSide))
-            eSide = (_lot->ruleEnergy(RuleType::DistSide))->energy(var_value,t.h());
+            eSide = (_lot->ruleEnergy(RuleType::DistSide))->energy(var_value);
 
         if(_lot->hasRule(RuleType::DistBack))
-            eBack = (_lot->ruleEnergy(RuleType::DistBack))->energy(var_value,t.h());
+            eBack = (_lot->ruleEnergy(RuleType::DistBack))->energy(var_value);
 
         return (eFront+eSide+eBack)*_eRej;
     }
@@ -61,19 +62,17 @@ public:
             var_value.insert(std::make_pair(Var("d"+it->first),x));
             var_value.insert(std::make_pair(Var("hasWindow"+it->first),1.));
         }
-
+        var_value.insert(std::make_pair(Var("h"),_lot->ruleGeom()->hMax()));
 
         double eFront=0,eSide=0,eBack=0;
-        h = _lot->ruleGeom()->hMax();
-
         if(_lot->hasRule(RuleType::DistFront))
-            eFront = (_lot->ruleEnergy(RuleType::DistFront))->energy(var_value,h);
+            eFront = (_lot->ruleEnergy(RuleType::DistFront))->energy(var_value);
 
         if(_lot->hasRule(RuleType::DistSide))
-            eSide = (_lot->ruleEnergy(RuleType::DistSide))->energy(var_value,h);
+            eSide = (_lot->ruleEnergy(RuleType::DistSide))->energy(var_value);
 
         if(_lot->hasRule(RuleType::DistBack))
-            eBack = (_lot->ruleEnergy(RuleType::DistBack))->energy(var_value,h);
+            eBack = (_lot->ruleEnergy(RuleType::DistBack))->energy(var_value);
 
 
         return _eRej*std::max(std::max(eFront,eSide),eBack);

@@ -25,9 +25,8 @@ public:
     virtual Var getVar(void)=0;
     virtual bool isForVar(Var)=0;
     virtual bool isForSameVar(void)=0;
-    virtual Intervals toInterval(double)=0;
-
-    virtual EnergyPLU* toEnergy(double x,double acceptScale, EnergyFuncType acceptType,double penaltyScale,EnergyFuncType penaltyType)=0;
+    virtual Intervals toInterval(VarValue&)=0;
+    virtual EnergyPLU* toEnergy(VarValue&,double acceptScale, EnergyFuncType acceptType,double penaltyScale,EnergyFuncType penaltyType)=0;
 };
 
 template<typename E> //E is an expression type
@@ -40,18 +39,18 @@ class AtomConstraint:public Constraint
 public:
     inline AtomConstraint(Var v,Relation r,E expr):_var(v),_r(r),_expr(expr) {}
 
-    inline EnergyPLU* toEnergy(double x,double acceptScale, EnergyFuncType acceptType,double penaltyScale,EnergyFuncType penaltyType)
-    {return new EnergyPiecewise(_var,toInterval(x),acceptScale,acceptType,penaltyScale,penaltyType);}
+    inline EnergyPLU* toEnergy(VarValue& v,double acceptScale, EnergyFuncType acceptType,double penaltyScale,EnergyFuncType penaltyType)
+    {return new EnergyPiecewise(_var,toInterval(v),acceptScale,acceptType,penaltyScale,penaltyType);}
 
 private:
     inline Var getVar(void){return _var;}
     inline bool isForVar(Var v){return _var==v;}
     inline bool isForSameVar(void){return true;}
 
-    inline Intervals toInterval(double x)
+    inline Intervals toInterval(VarValue& v)
     {
         Intervals intervals;
-        double y = _expr(x);
+        double y = _expr(v);
         switch (_r)
         {
         case Relation::Equal:
@@ -96,14 +95,14 @@ public:
         if(_rightChild!=NULL) delete _rightChild;
     }
 
-    EnergyPLU* toEnergy(double x,double acceptScale,EnergyFuncType acceptType,double penaltyScale,EnergyFuncType penaltyType);
+    EnergyPLU* toEnergy(VarValue& v,double acceptScale,EnergyFuncType acceptType,double penaltyScale,EnergyFuncType penaltyType);
 
 private:
     inline Var getVar(void){return _leftChild->getVar(); }  //leftest var of its children
     inline bool isForVar(Var v){return _rightChild->isForVar(v) && _leftChild->isForVar(v);}
     inline bool isForSameVar(void){return _leftChild->isForVar(_leftChild->getVar()) && _rightChild->isForVar(_leftChild->getVar());}
 
-    Intervals toInterval(double);
+    Intervals toInterval(VarValue&);
     Intervals intervalOR(Intervals,Intervals);
     Intervals intervalAND(Intervals,Intervals);
 };
