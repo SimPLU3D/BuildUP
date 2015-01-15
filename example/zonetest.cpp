@@ -1,4 +1,4 @@
-#define USE_OSG
+//#define USE_OSG
 #include "buildup/plu/Lot.hpp"
 #include "buildup/plu/Building.hpp"
 #include "buildup/plu/Rule.hpp"
@@ -243,9 +243,9 @@ int launchTest(int iTest,std::vector<int>& idLots,std::string& filenameLot,std::
             std::cout<<"max energy "<<max_e<<"\n";
             std::cout<<"average energy "<<avg_e<<"\n\n";
 
-            std::cout<<"min time "<<min_t<<"\n";
-            std::cout<<"max time "<<max_t<<"\n";
-            std::cout<<"average times "<<avg_t<<"\n";
+            std::cout<<"min time "<<min_t<<" ms\n";
+            std::cout<<"max time "<<max_t<<" ms\n";
+            std::cout<<"average time "<<avg_t<<" ms\n";
 
 
             fsStat<<"\nmin LCR "<<min_lcr<<"\n";
@@ -260,9 +260,9 @@ int launchTest(int iTest,std::vector<int>& idLots,std::string& filenameLot,std::
             fsStat<<"max energy "<<max_e<<"\n";
             fsStat<<"average energy "<<avg_e<<"\n\n";
 
-            fsStat<<"min time "<<min_t<<"\n";
-            fsStat<<"max time "<<max_t<<"\n";
-            fsStat<<"average times "<<avg_t<<"\n";
+            fsStat<<"min time "<<min_t<<" ms\n";
+            fsStat<<"max time "<<max_t<<" ms\n";
+            fsStat<<"average time "<<avg_t<<" ms\n";
         }
 
         fsStat.close();

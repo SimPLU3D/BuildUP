@@ -1,19 +1,19 @@
 #include "buildup/plu/Constraint.hpp"
 
 
-EnergyPLU* CompConstraint::toEnergy(double x,double acceptScale,EnergyFuncType acceptType,double penaltyScale,EnergyFuncType penaltyType)
+EnergyPLU* CompConstraint::toEnergy(VarValue& v,double acceptScale,EnergyFuncType acceptType,double penaltyScale,EnergyFuncType penaltyType)
 {
     EnergyPLU* e;
     if(isForSameVar())
-        e = new EnergyPiecewise(getVar(),toInterval(x),acceptScale,acceptType,penaltyScale,penaltyType);
+        e = new EnergyPiecewise(getVar(),toInterval(v),acceptScale,acceptType,penaltyScale,penaltyType);
     else
-        e = new EnergyComposite(_leftChild->toEnergy(x,acceptScale,acceptType,penaltyScale,penaltyType)
-                                ,_rightChild->toEnergy(x,acceptScale,acceptType,penaltyScale,penaltyType),_r);
+        e = new EnergyComposite(_leftChild->toEnergy(v,acceptScale,acceptType,penaltyScale,penaltyType)
+                                ,_rightChild->toEnergy(v,acceptScale,acceptType,penaltyScale,penaltyType),_r);
 
     return e;
 }
 
-CompConstraint::Intervals CompConstraint::toInterval(double x)
+CompConstraint::Intervals CompConstraint::toInterval(VarValue& v)
 {
     if(!isForSameVar())
         std::cerr<<"error: can not convert to intervals for different variables";
@@ -21,9 +21,9 @@ CompConstraint::Intervals CompConstraint::toInterval(double x)
     switch(_r)
     {
     case Relation::And:
-        return intervalAND(_leftChild->toInterval(x),_rightChild->toInterval(x));
+        return intervalAND(_leftChild->toInterval(v),_rightChild->toInterval(v));
     case Relation::Or:
-        return intervalOR(_leftChild->toInterval(x),_rightChild->toInterval(x));
+        return intervalOR(_leftChild->toInterval(v),_rightChild->toInterval(v));
     default:
         std::cerr<<"error: wrong logic";
         exit(1);

@@ -85,7 +85,7 @@ Rule* makeRule_dSide(int iTest)
 
         Literal l1(Constant(0.0));
         Literal l2(Constant(6.0));
-        Variable varH(Var("height"));
+        Variable varH(Var("h"));
         VarLitMax vlMax(BEMax(varH,l2));
 
 
@@ -121,7 +121,7 @@ Rule* makeRule_dSide(int iTest)
         typedef Expression<BE3> Expr;
         typedef AtomConstraint<Expr> AC;
 
-        Variable varH(Var("height"));
+        Variable varH(Var("h"));
         Literal l1(Constant(-3.0));
         Literal l2(Constant(0.5));
         Literal l3(Constant(3.0));
@@ -163,7 +163,7 @@ Rule* makeRule_dSide(int iTest)
         typedef AtomConstraint<Expr1> AC1;
         typedef AtomConstraint<Expr2> AC2;
 
-        Variable varH(Var("height"));
+        Variable varH(Var("h"));
         Literal l0(Constant(0.0));
         Literal l1(Constant(-3.5));
         Literal l2(Constant(6.0));
@@ -292,7 +292,7 @@ Rule* makeRule_dBack(int iTest)
         typedef AtomConstraint<Variable> AC2;
 
         Literal l(Constant(0.0));
-        Variable v(Var("height"));
+        Variable v(Var("h"));
         Constraint* c1 = new AC1(Var("dBack"),Relation::Equal,l);
         Constraint* c2 = new AC2(Var("dBack"),Relation::Greater,v);
         Constraint* c12 = new CompConstraint(c1,c2,Relation::Or);
@@ -327,45 +327,114 @@ Rule* makeRule_dPair(int iTest)
         return rule;
 
     }
+
+//    //no window rules
+//    case 2:
+//    {
+//        const char* strRule = "dPair> hMax/2 && dPair>max(hMax-3,8.0)";
+//
+//        typedef Expression<Constant> Literal;
+//        typedef Expression<Var> Variable;
+//
+//        typedef BinaryExpression<Variable,Literal,Multiply> BE1;
+//        typedef BinaryExpression<Variable,Literal,Add> BE2;
+//        typedef BinaryExpression<BE2,Literal,Max> BE3;
+//        typedef Expression<BE1> Expr1;
+//        typedef Expression<BE3> Expr2;
+//
+//        typedef AtomConstraint<Expr1> AC1;
+//        typedef AtomConstraint<Expr2> AC2;
+//
+//        Variable vH(Var("heightMax"));
+//        Literal l1(Constant(0.5));
+//        Literal l2(Constant(-3.0));
+//        Literal l3(Constant(8.0));
+//        Expr1 expr1(BE1(vH,l1));
+//        Expr2 expr2(BE3(BE2(vH,l2),l3));
+//
+//        Constraint* c1 = new AC1(Var("dPair"),Relation::Greater,expr1);
+//        Constraint* c2 = new AC2(Var("dPair"),Relation::Greater,expr2);
+//
+//        Constraint* c12 = new CompConstraint(c1,c2,Relation::And);
+//
+//        Rule* rule = new Rule(RuleType::DistPair,strRule);
+//        rule->addRuleDirectly(new RuleDynamic(c12,1.0,EnergyFuncType::Zero,0.2,EnergyFuncType::Erf));
+//        return rule;
+//
+//    }
     case 2:
     {
-        const char* strRule = "dPair> hMax/2 && dPair>max(hMax-3,8.0)";
+        const char* strRule = "\n\
+        if(!hasWindowLow && !hasWindowHigh) {dPair>hHigh/2}\n\
+        if(!hasWindowLow && hasWindowHigh)  {dPair>max(hLow-3,8)}\n\
+        if(hasWindowLow) {dPair>max(hHigh-3,8)}";
 
         typedef Expression<Constant> Literal;
         typedef Expression<Var> Variable;
 
         typedef BinaryExpression<Variable,Literal,Multiply> BE1;
-        typedef BinaryExpression<Variable,Literal,Add> BE2;
-        typedef BinaryExpression<BE2,Literal,Max> BE3;
         typedef Expression<BE1> Expr1;
-        typedef Expression<BE3> Expr2;
+
+        typedef BinaryExpression<Variable,Literal,Add> VLAdd;
+        typedef BinaryExpression<VLAdd,Literal,Max> BE2;
+        typedef Expression<BE2> Expr2;
 
         typedef AtomConstraint<Expr1> AC1;
         typedef AtomConstraint<Expr2> AC2;
 
-        Variable vH(Var("heightMax"));
         Literal l1(Constant(0.5));
-        Literal l2(Constant(-3.0));
-        Literal l3(Constant(8.0));
-        Expr1 expr1(BE1(vH,l1));
-        Expr2 expr2(BE3(BE2(vH,l2),l3));
+        Literal l2(Constant(-3));
+        Literal l3(Constant(8));
+        Variable vhLow(Var("hLow"));
+        Variable vhHigh(Var("hHigh"));
+        Expr1 expr1(BE1(vhHigh,l1));
+        Expr2 expr2(BE2(VLAdd(vhLow,l2),l3));
+        Expr2 expr3(BE2(VLAdd(vhHigh,l2),l3));
 
-        Constraint* c1 = new AC1(Var("dPair"),Relation::Greater,expr1);
-        Constraint* c2 = new AC2(Var("dPair"),Relation::Greater,expr2);
+        Rule* rule = new Rule(RuleType::DistSide,strRule);
+        //if(!hasWindowLow && !hasWindowHigh)
+        {
+            Condition* cd1 = new AtomCondition(Var("hasWindowLow"),0.);
+            Condition* cd2 = new AtomCondition(Var("hasWindowHigh"),0.);
+            Condition* cd12 = new CompCondition(cd1,cd2,Relation::And);
 
-        Constraint* c12 = new CompConstraint(c1,c2,Relation::And);
+            Constraint* c = new AC1(Var("dPair"),Relation::Greater,expr1);
 
-        Rule* rule = new Rule(RuleType::DistPair,strRule);
-        rule->addRuleDirectly(new RuleDynamic(c12,1.0,EnergyFuncType::Zero,0.2,EnergyFuncType::Erf));
+            rule->addConditionDirectly(cd12);
+            rule->addRuleDirectly(new RuleDynamic(c,1.0,EnergyFuncType::Zero,0.2,EnergyFuncType::Erf));
+        }
+
+        //if(!hasWindowLow && hasWindowHigh)
+        {
+            Condition* cd1 = new AtomCondition(Var("hasWindowLow"),0.);
+            Condition* cd2 = new AtomCondition(Var("hasWindowHigh"),1.);
+            Condition* cd12 = new CompCondition(cd1,cd2,Relation::And);
+
+            Constraint* c = new AC2(Var("dPair"),Relation::Greater,expr2);
+
+            rule->addConditionDirectly(cd12);
+            rule->addRuleDirectly(new RuleDynamic(c,1.0,EnergyFuncType::Zero,0.2,EnergyFuncType::Erf));
+        }
+         //if(hasWindowLow)
+        {
+            Condition* cd = new AtomCondition(Var("hasWindowLow"),1.);
+
+            Constraint* c = new AC2(Var("dPair"),Relation::Greater,expr3);
+
+            rule->addConditionDirectly(cd);
+            rule->addRuleDirectly(new RuleDynamic(c,1.0,EnergyFuncType::Zero,0.2,EnergyFuncType::Erf));
+        }
+
         return rule;
-
     }
+
+
 
     case 3:
     {
         const char* strRule = "\n\
-        if(hasWindowPair)  {dPair>=max(6,hMax/2)}\n\
-        if(!hasWindowPair) {dPair>=max(4,hMax/2)}";
+        if(hasWindowPair)  {dPair>=max(6,hHigh/2)}\n\
+        if(!hasWindowPair) {dPair>=max(4,hHigh/2)}";
 
         typedef Expression<Constant> Literal;
         typedef Expression<Var> Variable;
@@ -375,7 +444,7 @@ Rule* makeRule_dPair(int iTest)
         typedef Expression<BE2> Expr;
         typedef AtomConstraint<Expr> AC;
 
-        Variable vH(Var("heightMax"));
+        Variable vH(Var("hHigh"));
         Literal l1(Constant(0.5));
         Literal l2(Constant(6.0));
         Literal l3(Constant(4.0));
@@ -517,21 +586,20 @@ RuleGeom* makeRuleGeom(int iTest)
         rule->add_widthPeak(16.);
         break;
     case 2:
-        rule->strH("[3.2,24]");
-        rule->hMin(3.2);
+        rule->strH("[3.,24]");
+        rule->hMin(3.);
         rule->hMax(24.);
         rule->hFloor(3.);
 
         rule->strL("[20,50]");
-        rule->lMin(30.);
-        rule->lMax(60.);
+        rule->lMin(20.);
+        rule->lMax(50.);
 
-        rule->strW("[10,16] peaks: 10,13,16");
-        rule->wMin(10.);
-        rule->wMax(16.);
+        rule->strW("[5,10] peaks: 5,10");
+        rule->wMin(5.);
+        rule->wMax(10.);
+        rule->add_widthPeak(5.);
         rule->add_widthPeak(10.);
-        rule->add_widthPeak(13.);
-        rule->add_widthPeak(16.);
 
         break;
     case 3:
@@ -561,7 +629,7 @@ int makeRule_nMax(int iTest)
     case 1:
         return 4;
     case 2:
-        return 5;
+        return 6;
     case 3:
         return 8;
     default:

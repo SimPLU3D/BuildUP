@@ -7,10 +7,7 @@ class Condition
 {
 public:
     inline virtual ~Condition(){}
-
-    typedef std::map<Var,double> VarValue;
     virtual bool predicate(VarValue&) = 0;
-
 };
 
 class AtomCondition: public Condition

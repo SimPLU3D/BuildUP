@@ -11,7 +11,7 @@ EnergyComposite::~EnergyComposite()
     if(_rightChild!=NULL) delete _rightChild;
 }
 
-double EnergyComposite::operator()(VarMap& vMap)
+double EnergyComposite::operator()(VarValue& vMap)
 {
     switch (_r){
     case Relation::And:
@@ -24,7 +24,7 @@ double EnergyComposite::operator()(VarMap& vMap)
     }
 }
 
-bool EnergyComposite::isValid(VarMap& vMap)
+bool EnergyComposite::isValid(VarValue& vMap)
 {
     switch (_r){
     case Relation::And:
@@ -57,9 +57,9 @@ EnergyPiecewise::~EnergyPiecewise()
             delete it->second;
 }
 
-double EnergyPiecewise::operator()(VarMap& vMap)
+double EnergyPiecewise::operator()(VarValue& vMap)
 {
-    VarMap::iterator it = vMap.find(_var);
+    VarValue::iterator it = vMap.find(_var);
     if(it == vMap.end()){
         //std::cerr<<"error no matched variable "<<_var._name<<"\n";
         return 0.;
@@ -78,9 +78,9 @@ double EnergyPiecewise::operator()(VarMap& vMap)
     return (*(it2->second))(x);
 }
 
-bool EnergyPiecewise::isValid(VarMap& vMap)
+bool EnergyPiecewise::isValid(VarValue& vMap)
 {
-    VarMap::iterator it = vMap.find(_var);
+    VarValue::iterator it = vMap.find(_var);
     if(it == vMap.end()){
         std::cerr<<"error no matched variable "<<_var._name<<"\n";
         exit(1);
