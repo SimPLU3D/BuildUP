@@ -7,7 +7,7 @@
 #include <osgViewer/Viewer>
 #include <osg/LightModel>
 #include <osg/LineWidth>
-#include <osgText/Text>
+//#include <osgText/Text>
 #include <osgUtil/Tessellator>
 
 #include <gdal/ogrsf_frmts.h>
@@ -202,46 +202,48 @@ namespace io{
 
 
 
-    //for test
-     osg::ref_ptr<osg::Geode> makeGeode(double x[4],double y[4],const char* str)
-     {
 
-        osg::Vec3Array *verts = new osg::Vec3Array();
-        for(int i=0;i<4;++i)
-            verts->push_back(osg::Vec3(x[i],y[i],0));
+//    //for test
+//     osg::ref_ptr<osg::Geode> makeGeode(double x[4],double y[4],const char* str)
+//     {
+//
+//        osg::Vec3Array *verts = new osg::Vec3Array();
+//        for(int i=0;i<4;++i)
+//            verts->push_back(osg::Vec3(x[i],y[i],0));
+//
+//        osg::Geometry *geom = new osg::Geometry();
+//        geom->setVertexArray(verts);
+//        geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::Mode::LINE_LOOP,0,4));
 
-        osg::Geometry *geom = new osg::Geometry();
-        geom->setVertexArray(verts);
-        geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::Mode::LINE_LOOP,0,4));
-
-        osg::Vec4Array* colors = new osg::Vec4Array();
-        colors->push_back(BLACK);
-        colors->push_back(RED);
-        colors->push_back(GREEN);
-        colors->push_back(BLUE);
-        geom->setColorArray(colors);
-        geom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
-
-        osg::ref_ptr<osg::Geode> geode = new osg::Geode();
-        geode->addDrawable(geom);
-
-        osg::ref_ptr<osgText::Text> text = new osgText::Text;
-        text->setPosition(verts->at(0));
-        text->setAxisAlignment(osgText::Text::XY_PLANE);
-        text->setText(str);
-        text->setCharacterSize(1,1);
-        text->setColor(osg::Vec4(0.0f,0.0f,0.0f,1.0f));
-        geode->addDrawable(text);
-
-        return geode;
-     }
-
-
-    void display(double x1[4],double y1[4],double x2[4],double y2[4])
-    {
-        osg::ref_ptr<osg::Group> root = new osg::Group();
-        root->addChild(makeGeode(x1,y1,"b1"));
-        root->addChild(makeGeode(x2,y2,"b2"));
-        viewNode(root);
-    }
+//        osg::Vec4Array* colors = new osg::Vec4Array();
+//        colors->push_back(BLACK);
+//        colors->push_back(RED);
+//        colors->push_back(GREEN);
+//        colors->push_back(BLUE);
+//        geom->setColorArray(colors);
+//        geom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+//
+//        osg::ref_ptr<osg::Geode> geode = new osg::Geode();
+//        geode->addDrawable(geom);
+//
+//        osg::ref_ptr<osgText::Text> text = new osgText::Text;
+//        text->setPosition(verts->at(0));
+//        text->setAxisAlignment(osgText::Text::XY_PLANE);
+//        text->setText(str);
+//        text->setCharacterSize(1,1);
+//        text->setColor(osg::Vec4(0.0f,0.0f,0.0f,1.0f));
+//        geode->addDrawable(text);
+//
+//        return geode;
+//     }
+//
+//
+//    void display(double x1[4],double y1[4],double x2[4],double y2[4])
+//    {
+//        osg::ref_ptr<osg::Group> root = new osg::Group();
+//        root->addChild(makeGeode(x1,y1,"b1"));
+//        root->addChild(makeGeode(x2,y2,"b2"));
+//        viewNode(root);
+//    }
+>>>>>>> ac2922686f648bd709158124b8b27eef39d1fe02
 } //namespace io

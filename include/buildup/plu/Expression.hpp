@@ -2,6 +2,7 @@
 #define EXPRESSION_HPP_INCLUDED
 #include <algorithm>
 #include <map>
+#include <iostream>
 
 struct Var
 {
