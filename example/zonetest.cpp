@@ -18,6 +18,8 @@
 
 int launchTest(int,std::vector<int>&,std::string&,std::string&);
 
+
+
 int main(int argc , char** argv)
 {
     std::string filenameLot("parcelle.shp");
@@ -269,11 +271,33 @@ int launchTest(int iTest,std::vector<int>& idLots,std::string& filenameLot,std::
 
         #ifdef USE_OSG
         //display results
-        //reverse translate
+        ////reverse translate
         lot->translate(lot->invTransX(),lot->invTransY());
         std::map<int,std::vector<Building> > exp_bldgs;
         io::load_bldgsFinal_shp(dirBldgFinal,nExp,exp_bldgs);
-        io::display(exp_bldgs,lots);
+
+        double dx = -(lot->xMin());
+        double dy = -(lot->yMin());
+        {
+            std::map<int,Lot>::iterator it;
+            for(it=lots.begin();it!=lots.end();++it)
+                it->second.translate(dx,dy);
+        }
+
+        {
+            std::map<int,std::vector<Building> >::iterator it;
+            for(it=exp_bldgs.begin();it!=exp_bldgs.end();++it)
+            {
+                std::vector<Building>& bldgs = it->second;
+                for(size_t i=0;i<bldgs.size();++i)
+                    bldgs[i].translate_footprint(dx,dy);
+
+            }
+        }
+
+
+
+        io::display_lod3(exp_bldgs,lots);
 
         #endif
 

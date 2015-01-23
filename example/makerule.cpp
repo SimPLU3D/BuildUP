@@ -591,9 +591,9 @@ RuleGeom* makeRuleGeom(int iTest)
         rule->hMax(24.);
         rule->hFloor(3.);
 
-        rule->strL("[20,50]");
-        rule->lMin(20.);
-        rule->lMax(50.);
+        rule->strL("[10,30]");
+        rule->lMin(10.);
+        rule->lMax(30.);
 
         rule->strW("[5,10] peaks: 5,10");
         rule->wMin(5.);

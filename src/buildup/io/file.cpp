@@ -117,8 +117,10 @@ namespace io{
             {
                 OGRPolygon* ply = (OGRPolygon*)(poFeature->GetGeometryRef());
                 double h = poFeature->GetFieldAsDouble("height");
+                double w = poFeature->GetFieldAsDouble("width");
+                double l = poFeature->GetFieldAsDouble("length");
                 int lotID = poFeature->GetFieldAsInteger("lotID");
-                exp_bldgs[i].push_back(Building(ply,h,lotID));
+                exp_bldgs[i].push_back(Building(ply,l,w,h,lotID));
 
                 OGRFeature::DestroyFeature( poFeature );
             }
@@ -126,33 +128,33 @@ namespace io{
         }
     }
 
-    void load_bldgsEvolution_txt(const char* txt,std::map< int,std::vector<Building> >& iter_bldgs)
-    {
-        std::ifstream in(txt);
-        if(in.is_open())
-        {
-            int iter;
-            double x,y,h;
-            in>>iter;
-            while(!in.eof())
-            {
-
-                OGRLinearRing ring;
-                for(int i=0; i<5; ++i)
-                {
-                    in>>x;
-                    in>>y;
-                    ring.addPoint(x,y);
-                }
-                in>>h;
-                OGRPolygon footprint;
-                footprint.addRing(&ring);
-                iter_bldgs[iter].push_back(Building(&footprint,h));
-
-                in>>iter;
-            }
-        }
-    }
+//    void load_bldgsEvolution_txt(const char* txt,std::map< int,std::vector<Building> >& iter_bldgs)
+//    {
+//        std::ifstream in(txt);
+//        if(in.is_open())
+//        {
+//            int iter;
+//            double x,y,h;
+//            in>>iter;
+//            while(!in.eof())
+//            {
+//
+//                OGRLinearRing ring;
+//                for(int i=0; i<5; ++i)
+//                {
+//                    in>>x;
+//                    in>>y;
+//                    ring.addPoint(x,y);
+//                }
+//                in>>h;
+//                OGRPolygon footprint;
+//                footprint.addRing(&ring);
+//                iter_bldgs[iter].push_back(Building(&footprint,h));
+//
+//                in>>iter;
+//            }
+//        }
+//    }
 
     void save_bldgs2shp(std::vector<Building>& bldgs,const char* file )
     {
