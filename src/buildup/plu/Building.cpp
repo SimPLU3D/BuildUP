@@ -138,7 +138,6 @@ Surface* Building::extrude_lod3(double hFloor, double lenHasWin, double lenUnit)
                 {
                     Floor* floor = (Floor*)(wall->getChild(j));
                     floor->splitUnit(lenUnit);
-                    int nUnit = floor->getNumChildren();
                     for(int k=0;k<floor->getNumChildren();++k)
                     {
                         Unit* unit = (Unit*)(floor->getChild(k));
