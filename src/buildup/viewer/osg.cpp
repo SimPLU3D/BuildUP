@@ -25,10 +25,6 @@
 #define SKYBLUE3 osg::Vec4f(0.42f,0.65f,0.80f,1.0f)
 #define WIN osg::Vec4f(0.55f,0.66f,0.44f,0.5f)
 #define DOOR osg::Vec4f(0.46f,0.46f,0.46f,1.0f)
-//#define ROOF osg::Vec4f(0.98f,0.50f,0.45f,1.0f)
-//#define WALL osg::Vec4f(0.57f,0.71f,0.61f,1.0f)
-//#define WALL osg::Vec4f(0.53f,0.15f,0.34f,1.0f)
-//#define  ROOF osg::Vec4f(0.40f,0.55f,0.55f,1.0f)
 #define ROOF osg::Vec4f(0.78f,0.36f,0.30f,1.0f)
 #define WALL osg::Vec4f(0.80,0.31f,0.36f,1.0f)
 namespace io{
@@ -74,22 +70,11 @@ namespace io{
 
     int viewNode(osg::ref_ptr<osg::Node> node)
     {
-        //osgUtil::Optimizer optimizer;
-        //optimizer.optimize( node.get() );
 
-        osg::DisplaySettings::instance()->setNumMultiSamples(16);
+        osg::DisplaySettings::instance()->setNumMultiSamples(8);
 
         osgViewer::Viewer viewer;
- //       viewer.setLightingMode(osg::View::NO_LIGHT);
-//        osg::StateSet* globalState = viewer.getCamera()->getStateSet();
-//        if(globalState)
-//        {
-//            osg::LightModel* lightModel = new osg::LightModel;
-//            lightModel->setAmbientIntensity(osg::Vec4(0.3,0.3,0.3,1));
-//            globalState->setAttributeAndModes(lightModel,osg::StateAttribute::ON);
-//        }
-
-//
+        viewer.setLightingMode(osg::View::NO_LIGHT);
 
         viewer.setUpViewInWindow(0,0,600,400);
         viewer.setCameraManipulator(0);
@@ -161,8 +146,6 @@ namespace io{
             ss->setMode(GL_BLEND,osg::StateAttribute::ON);
         }
 
-        geode->getOrCreateStateSet()->setMode(GL_LIGHTING,osg::StateAttribute::OFF|osg::StateAttribute::PROTECTED);
-
         osg::Vec4Array* colors = new osg::Vec4Array();
         colors->push_back(color);
         geom->setColorArray(colors);
@@ -194,6 +177,51 @@ namespace io{
 //        root->addChild(makeGeode(ply2,osg::PrimitiveSet::Mode::LINE_LOOP,false,RED));
 //        viewNode(root);
 //    }
+
+    void display(std::vector<Building>& bldgs,std::map<int,Lot>& lots)
+    {
+        osg::ref_ptr<osg::Group> root = new osg::Group();
+
+        for(size_t i=0; i<bldgs.size(); ++i)
+        {
+            OGRMultiPolygon* plys = bldgs[i].extrude_box();
+            osg::ref_ptr<osg::Group> wire = new osg::Group();
+            osg::ref_ptr<osg::Group> surface = new osg::Group();
+            for(int j=0; j<plys->getNumGeometries(); ++j)
+            {
+                wire->addChild(makeGeode((OGRPolygon*)(plys->getGeometryRef(j)),osg::PrimitiveSet::Mode::LINE_STRIP,false,false,BLACK));
+                surface->addChild(makeGeode((OGRPolygon*)(plys->getGeometryRef(j)),osg::PrimitiveSet::Mode::POLYGON,false,false,SKYBLUE3));
+
+            }
+            root->addChild(wire);
+            root->addChild(surface);
+        }
+
+        osg::ref_ptr<osg::Group> gpLots = new osg::Group();
+        std::map<int,Lot>::iterator it;
+        for(it=lots.begin(); it!=lots.end(); ++it)
+        {
+            OGRPolygon *ply = (OGRPolygon*)(it->second.polygon()->Buffer(-0.1));
+            gpLots->addChild(makeGeode(ply,osg::PrimitiveSet::Mode::POLYGON,true,false,WHITE));
+            ply->empty();
+            gpLots->addChild(makeGeode(it->second.polygon(),osg::PrimitiveSet::Mode::LINE_LOOP,false,false,BLACK));
+        }
+        root->addChild(gpLots);
+
+
+        osg::DisplaySettings::instance()->setNumMultiSamples(8);
+
+        osgViewer::Viewer viewer;
+        viewer.setLightingMode(osg::View::NO_LIGHT);
+
+        viewer.setUpViewInWindow(0,0,600,400);
+        viewer.setCameraManipulator(0);
+        viewer.getCamera()->setClearColor(AZURE2);
+        viewer.setSceneData(root.get());
+       // viewer.addEventHandler(new UseEventHandler());
+        viewer.realize();
+        viewer.run();
+    }
 
     void display(std::map<int,std::vector<Building> >& exp_bldgs, std::map<int,Lot>& lots)
     {

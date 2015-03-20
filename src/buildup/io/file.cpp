@@ -1,7 +1,7 @@
 #include "buildup/io/file.hpp"
 #include <fstream>
 #include <boost/lexical_cast.hpp>
-
+#include "buildup/plu/Building.hpp"
 namespace io{
 
     void load_lots_shp(const char* file, std::map<int,Lot>& lots)
@@ -97,6 +97,33 @@ namespace io{
         OGRDataSource::DestroyDataSource(poDS);
     }
 
+
+    void load_bldgsFinal_shp(std::string& file, std::vector<Building>& bldgs)
+    {
+        OGRRegisterAll();
+        OGRDataSource *poDS = OGRSFDriverRegistrar::Open(file.c_str(),FALSE);
+        OGRLayer *poLayer = poDS->GetLayer(0);
+        poLayer->ResetReading();
+        OGRFeature *poFeature;
+
+
+        while( (poFeature = poLayer->GetNextFeature()) )
+        {
+            OGRPolygon* ply = (OGRPolygon*)(poFeature->GetGeometryRef());
+            double h = poFeature->GetFieldAsDouble("height");
+            double w = poFeature->GetFieldAsDouble("width");
+            double l = poFeature->GetFieldAsDouble("length");
+            double t = poFeature->GetFieldAsDouble("theta");
+            int lotID = poFeature->GetFieldAsInteger("lotID");
+            bldgs.push_back(Building(ply,l,w,h,t,lotID));
+
+            OGRFeature::DestroyFeature( poFeature );
+        }
+        OGRDataSource::DestroyDataSource( poDS );
+
+    }
+
+
     void load_bldgsFinal_shp(std::string& dir, int n,std::map<int,std::vector<Building> >& exp_bldgs)
     {
         exp_bldgs.clear();
@@ -119,8 +146,9 @@ namespace io{
                 double h = poFeature->GetFieldAsDouble("height");
                 double w = poFeature->GetFieldAsDouble("width");
                 double l = poFeature->GetFieldAsDouble("length");
+                double t = poFeature->GetFieldAsDouble("theta");
                 int lotID = poFeature->GetFieldAsInteger("lotID");
-                exp_bldgs[i].push_back(Building(ply,l,w,h,lotID));
+                exp_bldgs[i].push_back(Building(ply,l,w,h,t,lotID));
 
                 OGRFeature::DestroyFeature( poFeature );
             }

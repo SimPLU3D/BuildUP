@@ -7,10 +7,11 @@
 
 namespace io
 {
+    void display(std::vector<Building>& bldgs,std::map<int,Lot>& lots);
     void display(std::map<int,std::vector<Building> >& exp_bldgs, std::map<int,Lot>& lots);
     void display_lod3(std::map<int,std::vector<Building> >& exp_bldgs, std::map<int,Lot>& lots);
-    void display(OGRPolygon* ply);
-    void display(OGRPolygon* ply1, OGRPolygon* ply2);
+//    void display(OGRPolygon* ply);
+//    void display(OGRPolygon* ply1, OGRPolygon* ply2);
 //   for test
 //    void display(double x1[4],double y1[4],double x2[4],double y2[4]);
 //

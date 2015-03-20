@@ -10,15 +10,16 @@ class Building
     double _length;
     double _width;
     double _height;
+    double _theta;
     int _idLot;
 
 
 public:
     inline Building():_footprint(0) {}
 
-    inline Building(OGRPolygon* ply,double l,double w,double h,int idLot=-1)
+    inline Building(OGRPolygon* ply,double l,double w,double h,double t,int idLot=-1)
     :_footprint((OGRPolygon*)(ply->clone()))
-    ,_length(l),_width(w),_height(h),_idLot(idLot) {}
+    ,_length(l),_width(w),_height(h),_theta(t),_idLot(idLot) {}
 
     inline Building(const Building& o)
     {
@@ -26,6 +27,7 @@ public:
         _length = o._length;
         _width = o._width;
         _height = o._height;
+        _theta = o._theta;
         _idLot = o._idLot;
     }
 
@@ -40,7 +42,10 @@ public:
 
     //gets
     inline OGRPolygon* footprint() const {return _footprint;}
-    inline double height() const {return _height;}
+    inline double height() const{return _height;}
+    inline double width()  const{return _width;}
+    inline double length() const{return _length;}
+    inline double theta()  const{return _theta;}
     inline int idLot() const {return _idLot;}
 
     //extrude 3D box

@@ -11,6 +11,7 @@ namespace io
 {
     void load_lots_shp(const char* file, std::map<int,Lot>& lots);
     void load_borders_shp(const char* file, std::map<int,Lot>& lots);
+    void load_bldgsFinal_shp(std::string& file,std::vector<Building> & bldgs);
     void load_bldgsFinal_shp(std::string& dir, int n,std::map<int,std::vector<Building> >& exp_bldgs);
     void load_bldgsEvolution_txt(const char* txt,std::map< int,std::vector<Building> >& iter_bldgs);
 
@@ -27,16 +28,16 @@ namespace io
         OGRFieldDefn idField("ID",OFTInteger)
         ,lotField("lotID",OFTInteger)
         ,hField("height", OFTReal)
-        ,fX("centerX",OFTReal)
-        ,fY("centerY",OFTReal)
+//        ,fX("centerX",OFTReal)
+//        ,fY("centerY",OFTReal)
         ,fW("width",OFTReal)
         ,fL("length",OFTReal)
         ,fT("theta",OFTReal);
         poLayer->CreateField( &idField );
         poLayer->CreateField( &lotField );
         poLayer->CreateField( &hField );
-        poLayer->CreateField( &fX );
-        poLayer->CreateField( &fY );
+//        poLayer->CreateField( &fX );
+//        poLayer->CreateField( &fY );
         poLayer->CreateField( &fW );
         poLayer->CreateField( &fL );
         poLayer->CreateField( &fT );
@@ -62,8 +63,8 @@ namespace io
             poFeature->SetField("ID",++id);
             poFeature->SetField("lotID",idLot);
             poFeature->SetField("height",config[it].h());
-            poFeature->SetField("centerX",config[it].centerX());
-            poFeature->SetField("centerY",config[it].centerY());
+//            poFeature->SetField("centerX",config[it].centerX()+transX);
+//            poFeature->SetField("centerY",config[it].centerY()+transY);
             poFeature->SetField("width",config[it].width());
             poFeature->SetField("length",config[it].length());
             poFeature->SetField("theta",config[it].theta());
