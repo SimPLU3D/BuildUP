@@ -11,7 +11,14 @@
 #include "Expression.hpp"
 #include "Energy.hpp"
 
-
+/**
+ * @class
+ * The Constraint class is a pure abstract class representing the constraint in PLU rules
+ * a constraint can involve more than one variables eg. dSide1>2 && dSide2>3
+ * a constraint on the same variable can be interpreted by intervals
+ * eg. dSide1>2 --> rejection interval (-inf,2] and acception interval (2,+inf)
+ * each interval is associated with an energy function
+ */
 class Constraint
 {
 public:
@@ -29,7 +36,15 @@ public:
     virtual EnergyPLU* toEnergy(VarValue&,double acceptScale, EnergyFuncType acceptType,double penaltyScale,EnergyFuncType penaltyType)=0;
 };
 
-template<typename E> //E is an expression type
+
+/**
+ * @class
+ * The AtomConstraint class template represents the atomic constraint in PLU rules
+ * an atomic constraint involves only one variable and one binary relation
+ * eg. dFront>2 is an atomic constraint
+ * eg. (2<dFront<4), (dFront1 =0 && dFront2=0) are not atomic constraints
+ */
+template<typename E>
 class AtomConstraint:public Constraint
 {
     Var _var;
@@ -39,6 +54,24 @@ class AtomConstraint:public Constraint
 public:
     inline AtomConstraint(Var v,Relation r,E expr):_var(v),_r(r),_expr(expr) {}
 
+    /**
+     *
+     * interface function for computing energy based on an atomic constraint
+     *
+     * @param
+     * v: variable and value
+     * acceptScale, acceptType: parameters for energy function assigned to acception intervals
+     * penaltyScale, penaltyType: parameters for energy function assigned to rejection intervals
+     *
+     * @example
+     * the constraint is dFront>2
+     * acceptScale is 1.0, acceptType is EnergyFuncType::Zero
+     * penaltyScale is 0.2, penaltyType is EnergyFuncType::Erf (Gaussian error function)
+     * therefore, the acception interval is (2,inf) associated with energy function y=0
+     * the rejection interval is (-inf,2] associated with energy function y=erf(0.2*(x-2))
+     * if input v contains <"dFront", 3>, then energy = 0
+     * if input v contains <"dFront", 1.5>, then energy = abs(erf(0.2*(1.5-2)))
+     */
     inline EnergyPLU* toEnergy(VarValue& v,double acceptScale, EnergyFuncType acceptType,double penaltyScale,EnergyFuncType penaltyType)
     {return new EnergyPiecewise(_var,toInterval(v),acceptScale,acceptType,penaltyScale,penaltyType);}
 
@@ -76,9 +109,13 @@ private:
 
 };
 
-
-
-
+/**
+ * @class
+ * The CompConstraint class represents the composite constraint in PLU rules
+ * a composite constraint involves more than one atomic constraints connected by AND/OR relation
+ * eg. (2<dFront<4), (dFront1 =0 && dFront2=0) are both composite constraints
+ * but (2<dFront<4) has to be expressed as (dFront>2 && dFront<4)
+ */
 class CompConstraint: public Constraint
 {
     Constraint* _leftChild;
@@ -94,7 +131,21 @@ public:
         if(_leftChild!=NULL) delete _leftChild;
         if(_rightChild!=NULL) delete _rightChild;
     }
-
+    /**
+     * interface function for computing energy based on a composite constraint
+     *
+     * @param
+     * v: variable and value
+     * acceptScale, acceptType: parameters for energy function assigned to acception intervals
+     * penaltyScale, penaltyType: parameters for energy function assigned to rejection intervals
+     *
+     * @example
+     * if the constraint involves the same variable eg. (dFront>2 && dFront<4)
+     * the intervals can be merged, and energy computation is the same as for atomic constraint
+     * if the constraint involves different variable, the energy computation depends on their relation
+     * eg. (dFront1 =0 && dFront2=0) the total energy is max(energy(<"dFront1", x>), energy(<"dFront2", x>))
+     * eg. (dFront1 =0 || dFront2=0) the total energy is min(energy(<"dFront1", x>), energy(<"dFront2", x>))
+     */
     EnergyPLU* toEnergy(VarValue& v,double acceptScale,EnergyFuncType acceptType,double penaltyScale,EnergyFuncType penaltyType);
 
 private:

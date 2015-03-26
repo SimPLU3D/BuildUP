@@ -1,7 +1,13 @@
+/**
+ * @file
+ * this file contains the functors for generating discrete sample space of each random variable
+ * for a 3D box including center, width, length, theta, height
+ */
+
+
 #ifndef PLU_FUNCTOR_HPP_INCLUDED
 #define PLU_FUNCTOR_HPP_INCLUDED
 
-//sample space functors
 #include <array>
 #include <vector>
 #include "Lot.hpp"
@@ -17,7 +23,11 @@ using SampleType = std::array<double,N>;
 template<unsigned int N>
 using SampleContainer = std::vector< SampleType<N> >;
 
-//static discrete uniform sample sapce
+/**
+ * @class
+ * this file contains the functors for generating discrete sample space of each random variable
+ * for a 3D box including center, width, length, theta, height
+ */
 struct Center_Functor
 {
     enum {dimension=2};
@@ -48,19 +58,6 @@ struct Center_Functor
         }
     }
 };
-
-
-//struct Rho_Functor
-//{
-//    enum {dimension=1};
-//    typedef SampleType<dimension> sample_type;
-//    typedef SampleContainer<dimension> sample_container;
-//    Lot* m_lot;
-//
-//    Rho_Functor(Lot* lot):m_lot(lot){}
-//
-//    inline void operator()(sample_container & c) const {c=m_lot->ruleGeom()->rho();}
-//};
 
 
 //static discrete sample space with weights
@@ -184,29 +181,7 @@ struct Length_Functor
     }
 
 };
-////dynamic discrete sample space depending on width
-//struct Ratio_Functor
-//{
-//    enum {dimension=1};
-//    typedef SampleType<dimension> sample_type;
-//    typedef SampleContainer<dimension> sample_container;
-//    double m_minR,m_maxR,m_rate;
-//
-//    Ratio_Functor(double minR, double maxR, double rate):m_minR(minR),m_maxR(maxR),m_rate(rate){}
-//
-//    inline void operator()(sample_container& c) const {return ;}
-//
-//    template<typename Iterator>
-//    inline void operator()(Iterator it, sample_container& c) const
-//    {
-//        double rho = (*it);
-//        double dr = m_rate/(rho*2);
-//        int n = (int)((m_maxR-m_minR)/dr);
-//        for(int i=0;i<n;++i)
-//            c.push_back( sample_type {m_minR+i*dr} );
-//    }
-//
-//};
+
 
 //dynamic discrete sample space depending on width
 //current implementation: only one maximum value

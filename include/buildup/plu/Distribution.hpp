@@ -3,6 +3,10 @@
 
 #include <boost/random/poisson_distribution.hpp>
 #include <boost/math/distributions/poisson.hpp>
+/**
+* @class
+* poisson distribution with maximum number
+*/
 class poisson_distribution_max {
 public:
     typedef double real_type;

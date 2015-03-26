@@ -21,6 +21,10 @@ enum class EnergyFuncType
     Square
 };
 
+/**
+ * @class
+ * The EnergyFunc class
+ */
 class EnergyFunc
 {
     double _offset;
