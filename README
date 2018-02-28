@@ -7,3 +7,8 @@ rjmcmc https://github.com/IGNF/librjmcmc
 Boost (components: boost_system boost_filesystem)
 GDAL
 OpenSceneGraph (optional for viewer)
+
+Acknowledgments
+
+    This research is supported by the French National Mapping Agency (IGN)
+    It is partially funded by the FUI TerraMagna project and by Île-de-France Région in the context of e-PLU projet
